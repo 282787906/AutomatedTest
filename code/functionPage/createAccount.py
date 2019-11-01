@@ -174,7 +174,7 @@ def run(driver, accountSetInfo):
             return 0
     except BaseException as e:
         r = requests.get(driver.current_url, allow_redirects=False)
-        log.e('建账异常',r.status_code,e)
+        log.exception('建账异常',r.status_code )
         return 1
 if __name__=="__main__":
     print('createAccount')
@@ -190,7 +190,7 @@ if __name__=="__main__":
         time.sleep(config.FAIL_WAIT_SLEEP)
         driver.quit()
     else:
-        accountSetInfo = AccountSetInfo('companyName', 'taxidCode000000000', 1, 2018, 8, 1, '小企业会计制度多行业科目体系', '默认组',
+        accountSetInfo = AccountSetInfo('companyName1', 'taxidCode000000001', 1, 2018, 8, 1, '小企业会计制度多行业科目体系', '默认组',
                                         '伊文科技',
                                         '通用公式')
         ret = run(driver, accountSetInfo)

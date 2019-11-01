@@ -33,7 +33,7 @@ def run(driver, userName, pwd):
     except BaseException as e:
         r = requests.get(driver.current_url, allow_redirects=False)
 
-        log.e('登录异常',r.status_code,e)
+        log.exception('登录异常',r.status_code )
         return 1
 if __name__=="__main__":
     print('main')

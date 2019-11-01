@@ -38,9 +38,9 @@ def run(driver):
 
         log.d('费用报销单结束')
         return 0
-    except BaseException as e:
+    except  :
         r = requests.get(driver.current_url, allow_redirects=False)
-        log.e('新增费用报销单异常', r.status_code, e)
+        log.exception('新增费用报销单异常', r.status_code )
 
         return 1
 

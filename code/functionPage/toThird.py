@@ -19,7 +19,7 @@ def run(driver, company, tax):
     '''
     log.d('进账簿', company)
     try:
-        if commonSelenium.toPage(driver,config.domain + "/#/third/customer"):
+        if commonSelenium.toPage(driver, config.domain + "/#/third/customer"):
             log.e("进账簿失败-进入客户列表超时：", driver.current_url)
             return 1
         driver.find_element_by_id('input_company').send_keys(company)
@@ -32,7 +32,7 @@ def run(driver, company, tax):
             if len(elements) == 1 and len(elements_name) == 1 and elements_name[0].text == company:
                 break
             times = times + 1
-            if times == maxTimes  :
+            if times == maxTimes:
                 log.e("进账簿-账套查询超时：", len(elements))
                 return 1
             time.sleep(config.WHILE_WAIT_SLEEP)
@@ -59,11 +59,13 @@ def run(driver, company, tax):
 
             log.e("进账簿失败：", '公司名税号匹配失败')
             return 1
-    except BaseException as e:
+    except:
         r = requests.get(driver.current_url, allow_redirects=False)
-        log.e(r.status_code,e)
+        log.exception(r.status_code)
         return 1
-if __name__=="__main__":
+
+
+if __name__ == "__main__":
     print('main')
     option = webdriver.ChromeOptions()
     option.add_argument('disable-infobars')

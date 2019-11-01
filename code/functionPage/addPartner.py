@@ -41,9 +41,9 @@ def run(driver, partnerName):
 
         log.e('新增往来单位失败, 添加后未找到')
         return 1
-    except BaseException as e:
+    except  :
         r = requests.get(driver.current_url, allow_redirects=False)
-        log.e('新增往来单位异常',r.status_code,e)
+        log.exception('新增往来单位异常',r.status_code )
 
         return 1
 if __name__=="__main__":

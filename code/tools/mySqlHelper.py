@@ -17,8 +17,7 @@ from conf import config
 #                                charset='utf8')
 #     except:
 #
-#         print('数据库连接异常:', traceback._context_message)
-#         traceback.print_exc()
+#         log.exception('数据库连接异常')
 #         return -1, None, '数据库连接异常 '
 #
 #     try:
@@ -44,9 +43,7 @@ from conf import config
 #             data.append(model)
 #         return 0, data, None
 #     except:
-#         traceback.print_exc()
-#
-#         print('数据库查询异常:', traceback._context_message)
+#         log.exception('数据库查询异常')
 #         return -2, None, '数据库查询异常'
 #     finally:
 #         # 关闭数据库连接
@@ -65,8 +62,7 @@ def getTemplateSubjectById(id):
                                charset='utf8')
     except:
 
-        print('数据库连接异常:', traceback._context_message)
-        traceback.print_exc()
+        log.exception('数据库连接异常')
         return -1, None, '数据库连接异常 '
 
     try:
@@ -96,9 +92,7 @@ def getTemplateSubjectById(id):
             data.append(model)
         return 0, data, None
     except:
-        traceback.print_exc()
-
-        print('数据库查询异常:', traceback._context_message)
+        log.exception('数据库查询异常')
         return -2, None, '数据库查询异常'
     finally:
         # 关闭数据库连接
@@ -115,8 +109,8 @@ def getTemplateSubjectById(id):
 #                                charset='utf8')
 #     except:
 #
-#         print('数据库连接异常:', traceback._context_message)
-#         traceback.print_exc()
+#         log.exception('数据库连接异常:' )
+#
 #         return -1, None, '数据库连接异常 '
 #
 #     try:
@@ -137,9 +131,7 @@ def getTemplateSubjectById(id):
 #             data.append(model)
 #         return 0, data, None
 #     except:
-#         traceback.print_exc()
-#
-#         print('数据库查询异常:', traceback._context_message)
+#         log.exception('数据库查询异常' )
 #         return -2, None, '数据库查询异常'
 #     finally:
 #         # 关闭数据库连接

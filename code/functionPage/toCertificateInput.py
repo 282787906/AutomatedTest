@@ -1,6 +1,6 @@
 import time
 
-from pip._vendor import requests
+import requests
 from selenium import webdriver
 from selenium.webdriver import ActionChains
 from selenium.webdriver.common.keys import Keys
@@ -272,7 +272,7 @@ def run(driver):
         return 0
     except BaseException as e:
         r = requests.get(driver.current_url, allow_redirects=False)
-        log.e('录入凭证异常',r.status_code,e)
+        log.exception('录入凭证异常',r.status_code )
         return 1
 
 
