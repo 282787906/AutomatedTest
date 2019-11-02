@@ -24,30 +24,66 @@ from operator import eq
 # dbUser = conf.get('db', 'user')
 # dbPasswd = conf.get('db', 'passwd')
 # dbPlatform = conf.get('db', 'dbPlatform')
-
-global runInPycharm
-runInPycharm = 1
-def set_runInPycharm( value):
-    global runInPycharm
-    runInPycharm = value
-
-def get_runInPycharm():
-    return runInPycharm
+from tools import log
 
 
-# domain = 'http://pre.sstax.cn:81/'
+RUN_WITH_UNKNOW=0
+RUN_WITH_PYCHARM=1
+RUN_WITH_CMD=2
+
+global runWith
+runWith = 1
+def set_runWith(value):
+    global runWith
+    runWith = value
+
+
+domain = str
+dbHost = str
+dbPort = int
+dbUser = str
+dbPasswd =str
+dbPlatform =str
+hostSource = None
+def set_Host(host):
+    global domain
+    global dbHost
+    global dbPort
+    global dbUser
+    global dbPasswd
+    global dbPlatform
+    global hostSource
+    if host=='online':
+        hostSource= 'online'
+        log.i('设置环境参数-生产环境')
+        domain = 'http://sstax.cn:1000/'
+        dbHost = '222.73.99.99'
+        dbPort = 3030
+        dbUser = 'csdb'
+        dbPasswd = 'Pwd!2018@db'
+        dbPlatform = 'cs_platform'
+    elif host=='pre':
+
+        hostSource= 'pre'
+        log.i('设置环境参数-预发布环境')
+        domain = 'http://pre.sstax.cn:81/'
+        dbHost = '222.73.99.99'
+        dbPort = 3031
+        dbUser = 'precsdb'
+        dbPasswd = 'Pwd2018db'
+        dbPlatform = 'pre_cs_platform'
+    else:
+        log.w('未设置环境参数 ')
+
+        hostSource = None
+
+
+# domain = 'http://sstax.cn:1000/'
 # dbHost = '222.73.99.99'
-# dbPort = 3031
-# dbUser = 'precsdb'
-# dbPasswd = 'Pwd2018db'
-# dbPlatform = 'pre_cs_platform'
-
-domain = 'http://sstax.cn:1000/'
-dbHost = '222.73.99.99'
-dbPort = 3030
-dbUser = 'csdb'
-dbPasswd = 'Pwd!2018@db'
-dbPlatform = 'cs_platform'
+# dbPort = 3030
+# dbUser = 'csdb'
+# dbPasswd = 'Pwd!2018@db'
+# dbPlatform = 'cs_platform'
 
 
 WHILE_WAIT_SLEEP = 0.2

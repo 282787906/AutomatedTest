@@ -1,11 +1,11 @@
 import ctypes
+import inspect
 import os
 import traceback
 from datetime import datetime
 import sys
 
 from conf import config
-from conf.config import runInPycharm
 
 STD_INPUT_HANDLE = -10
 STD_OUTPUT_HANDLE = -11
@@ -57,32 +57,45 @@ logLevel = debug | info | warming
 
 dateFormat = "%Y-%m-%d  %H:%M:%S"
 dateFormat = "%H:%M:%S"
-
 def exception(*strs):
     e(strs)
     et, ev, tb = sys.exc_info()
+    if et==None and ev ==None and tb==None:
+        if config.runWith==config.RUN_WITH_PYCHARM:
+            print('\033[31m' + '无异常信息' + '\033[0m')
+        elif config.runWith==config.RUN_WITH_CMD:
+            set_cmd_text_color(FOREGROUND_RED)
+            sys.stdout.write('无异常信息' + '\n')
+            resetColor()
+        else:
+            print('无异常信息')
     msg = traceback.format_exception(et, ev, tb)
     for m in msg:
         # e(m.strip('\n'))
-        if config.get_runInPycharm():
+        if config.runWith==config.RUN_WITH_PYCHARM:
             print('\033[31m' + m.strip('\n') + '\033[0m')
-        else:
+        elif config.runWith == config.RUN_WITH_CMD:
             set_cmd_text_color(FOREGROUND_RED)
             sys.stdout.write(m.strip('\n') + '\n')
             resetColor()
+        else:
+            print(m.strip('\n'))
 
 
 
 def e(*strs):
+
     msgs = datetime.now().strftime(dateFormat) + ' '
     for msg in strs:
         msgs = msgs + ' ' + str(msg)
-    if config.get_runInPycharm():
+    if config.runWith==config.RUN_WITH_PYCHARM:
         print('\033[31m' + msgs + '\033[0m')
-    else:
+    elif config.runWith == config.RUN_WITH_CMD:
         set_cmd_text_color(FOREGROUND_RED)
         sys.stdout.write(msgs + '\n')
         resetColor()
+    else:
+        print(strs)
 
 
 def w(*strs):
@@ -90,25 +103,28 @@ def w(*strs):
     for msg in strs:
         msgs = msgs + ' ' + str(msg)
     if logLevel & warming == warming:
-        if config.get_runInPycharm():
+        if config.runWith==config.RUN_WITH_PYCHARM:
             print('\033[33m' + msgs + '\033[0m')
-        else:
+        elif config.runWith == config.RUN_WITH_CMD:
             set_cmd_text_color(FOREGROUND_YELLOW)
             sys.stdout.write(msgs + '\n')
             resetColor()
-
+        else:
+            print(strs)
 
 def i(*strs):
     msgs = datetime.now().strftime(dateFormat) + ' '
     for msg in strs:
         msgs = msgs + ' ' + str(msg)
     if logLevel & info == info:
-        if config.get_runInPycharm():
+        if config.runWith==config.RUN_WITH_PYCHARM:
             print('\033[34m' + msgs + '\033[0m')
-        else:
+        elif config.runWith == config.RUN_WITH_CMD:
             set_cmd_text_color(FOREGROUND_GREEN)
             sys.stdout.write(msgs + '\n')
             resetColor()
+        else:
+            print(strs)
 
 
 def d(*strs):
@@ -116,13 +132,14 @@ def d(*strs):
     for msg in strs:
         msgs = msgs + ' ' + str(msg)
     if logLevel & debug == debug:
-        if config.get_runInPycharm():
+        if config.runWith==config.RUN_WITH_PYCHARM:
             print('\033[37m' + msgs + '\033[0m')
-        else:
+        elif config.runWith == config.RUN_WITH_CMD:
             set_cmd_text_color(FOREGROUND_DARKGRAY)
             sys.stdout.write(msgs + '\n')
             resetColor()
-
+        else:
+            print(strs)
 
 # get handle
 std_out_handle = ctypes.windll.kernel32.GetStdHandle(STD_OUTPUT_HANDLE)
@@ -143,11 +160,7 @@ if __name__ == "__main__":
     # print('Argument List:', str(sys.argv))
     # print('Argument List:', str(sys.argv))
     # print(sys.argv[1])
-    if len(sys.argv)==2 and str(sys.argv[1])=='0':
 
-        config.runInPycharm = 0
-
-    config.runInPycharm = 0
     print('默认')
     e('exception', '异常')
     w('warming', '警告')

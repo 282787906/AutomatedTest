@@ -3,6 +3,7 @@ import time
 
 from selenium import webdriver
 
+from conf import config
 from conf.config import window_size_w, window_size_h
 from functionPage import toCertificateInput, addCertificate, login
 from tools import log
@@ -32,4 +33,5 @@ from tools import log
 #     driver.quit()  # 使用完, 记得关闭浏览器, 不然chromedriver.exe进程为一直在内存中.
 
 if __name__ == "__main__":
-    log.e('main')
+    # config.set_Host('online')
+    log.e(config.domain)
