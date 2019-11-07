@@ -1,6 +1,6 @@
 import time
 
-from pip._vendor import requests
+import requests
 from selenium import webdriver
 
 from conf import config

@@ -2,11 +2,14 @@ import time
 
 import requests
 from selenium import webdriver
+from selenium.common.exceptions import TimeoutException
 from selenium.webdriver import ActionChains
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support.wait import WebDriverWait
 
 from conf import config
 from conf.config import ACTION_WAIT_SLEEP_LONG, LOAD_PAGE_TIMEOUT, WHILE_WAIT_SLEEP, ACTION_WAIT_SLEEP_SHORT
+from functionOther import csInfoFileUpload
 from functionPage import login
 
 from tools import log, commonSelenium
@@ -39,7 +42,7 @@ def run(driver):
                 nblzCount = nblzCount + 1
 
         document = documents[0]
-        if commonSelenium.toPage( config.domain + "/cs-third/cer/certificate/toCertificateInput"):
+        if commonSelenium.toPage(driver, config.domain + "/cs-third/cer/certificate/toCertificateInput"):
 
             log.w('加载凭证录入页面超时')
             return 1
@@ -78,21 +81,22 @@ def run(driver):
                 handles = driver.window_handles
                 time.sleep(ACTION_WAIT_SLEEP_LONG)
 
-                driver.switch_to_window(handles[0]);  # switch back to main screen
+                driver.switch_to.window(handles[0]);  # switch back to main screen
 
                 time.sleep(ACTION_WAIT_SLEEP_LONG)
-                count = int(driver.find_element_by_class_name('allcount').text.split('   ')[1][4:])
-                if count == 0:
-                    log.e('原始凭证不存在')
+            count = int(driver.find_element_by_class_name('allcount').text.split('   ')[1][4:])
+
+            if document[0].type == 1 and count < spCount:
+                log.e('原始凭证收票数量不足', count, spCount)
+                if csInfoFileUpload.run( document[0].tax_no, document[0].type,spCount-count): #文件上传失败
                     return 1
-                if document[0].type == 1 and count < spCount:
-                    log.e('原始凭证收票数量不足', count, spCount)
+            if document[0].type == 2 and count < cpCount:
+                log.e('原始凭证出票数量不足', count, cpCount)
+                if csInfoFileUpload.run(document[0].tax_no, document[0].type,cpCount-count): #文件上传失败
                     return 1
-                if document[0].type == 2 and count < cpCount:
-                    log.e('原始凭证出票数量不足', count, cpCount)
-                    return 1
-                if document[0].type == 3 and count < nblzCount:
-                    log.e('原始凭证内部流转数量不足', count, nblzCount)
+            if document[0].type == 3 and count < nblzCount:
+                log.e('原始凭证内部流转数量不足', count, nblzCount)
+                if csInfoFileUpload.run(document[0].tax_no, document[0].type,nblzCount-count): #文件上传失败
                     return 1
             divBtn = driver.find_element_by_id('divBtn')
             ActionChains(driver).move_to_element(divBtn).perform()
@@ -235,10 +239,25 @@ def run(driver):
                             time.sleep(ACTION_WAIT_SLEEP_LONG)
                             count = 0
                             while (count < LOAD_PAGE_TIMEOUT):
-                                if detail.partner_name in driver.find_element_by_class_name(
-                                        'select2-results__option').text:
-                                    driver.switch_to_active_element().send_keys(Keys.DOWN)
-                                    driver.switch_to_active_element().send_keys(Keys.ENTER)
+                                partner=driver.find_element_by_class_name('select2-results__option').text
+                                if detail.partner_name ==partner or '公司--'+detail.partner_name ==partner :
+                                    driver.switch_to.active_element.send_keys(Keys.DOWN)
+                                    driver.switch_to.active_element.send_keys(Keys.ENTER)
+                                    break
+                                if partner == 'No results found' :
+                                    log.w('往来单位不存在', detail.partner_name)
+
+                                    ActionChains(driver).move_to_element(
+                                        driver.find_element_by_class_name('select2-selection')).click().perform()
+
+                                    time.sleep(config.ACTION_WAIT_SLEEP_SHORT)
+                                    driver.find_element_by_id('wldw_add_sub').click()
+
+                                    time.sleep(config.ACTION_WAIT_SLEEP_SHORT)
+                                    driver.find_element_by_id('partnerName').send_keys(detail.partner_name)
+
+                                    time.sleep(config.ACTION_WAIT_SLEEP_SHORT)
+                                    driver.find_element_by_id('add_wldw_sub').click()
                                     break
                                 count = count + 1
                                 time.sleep(WHILE_WAIT_SLEEP)
@@ -250,9 +269,22 @@ def run(driver):
             driver.find_element_by_id('save').click()
 
             time.sleep(ACTION_WAIT_SLEEP_LONG)
-            count = 0
-            while (count < LOAD_PAGE_TIMEOUT):
+            times = 0
+            maxTimes = int(LOAD_PAGE_TIMEOUT / WHILE_WAIT_SLEEP)
+            while times < maxTimes:
+                try:
+                    alert = WebDriverWait(driver, 1, poll_frequency=0.2).until(
+                        lambda x: x.find_element_by_id("gritter-notice-wrapper"))
+                    # log.w(alert.text)
+                    if '保存成功' in alert.text:
+                        log.i(documentIndex, '录入凭证成功', detail.document_id)
+                        break
 
+                except TimeoutException:
+                     pass
+                except:
+                    log.exception('录入凭证异常')
+                    return 1
                 currentImgIdNew = driver.get_cookie('current_img_id')['value']
 
                 log.d('点击保存等待', count, 'currentImgIdNew', currentImgIdNew, 'currentImgIdOld', currentImgIdOld)
@@ -260,7 +292,7 @@ def run(driver):
                     # print('currentImgIdNew', currentImgIdNew, 'currentImgIdOld', currentImgIdOld)
                     log.i(documentIndex, '录入凭证成功', detail.document_id)
                     break
-                count = count + 1
+                times = times + 1
                 if count == LOAD_PAGE_TIMEOUT:
                     log.e(documentIndex, '录入凭证保存等待超时', detail.document_id)
                     return 1
@@ -278,23 +310,27 @@ def run(driver):
 
 if __name__=="__main__":
     print('main')
-    option = webdriver.ChromeOptions()
-    option.add_argument('disable-infobars')
-    driver = webdriver.Chrome(options=option)
-    driver.set_window_size(config.window_size_w, config.window_size_h)
-    driver.implicitly_wait(5)
-    ret = login.run(driver, 'lxhw', '12344321')
-    if (ret != 0):
-
-        print('登陆失败')
-        time.sleep(config.FAIL_WAIT_SLEEP)
-        driver.quit()
+    config.set_host(config.HOST_SOURCE_PRE)
+    if (config.hostSource == None):
+        log.e('未设置数据源')
     else:
-        ret = run(driver)
+        option = webdriver.ChromeOptions()
+        option.add_argument('disable-infobars')
+        driver = webdriver.Chrome(options=option)
+        driver.set_window_size(config.window_size_w, config.window_size_h)
+        driver.implicitly_wait(5)
+        ret = login.run(driver, 'lxhw', '12344321')
         if (ret != 0):
-            log.e('凭证录入失败', ret)
-            time.sleep(config.FAIL_WAIT_SLEEP)
 
-        time.sleep(5)
-        driver.quit()
+            print('登陆失败')
+            time.sleep(config.FAIL_WAIT_SLEEP)
+            driver.quit()
+        else:
+            ret = run(driver)
+            if (ret != 0):
+                log.e('凭证录入失败', ret)
+                time.sleep(config.FAIL_WAIT_SLEEP)
+
+            time.sleep(5)
+            driver.quit()
 

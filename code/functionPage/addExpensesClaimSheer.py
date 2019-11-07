@@ -1,6 +1,6 @@
 import time
 
-from pip._vendor import requests
+import requests
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 
@@ -47,24 +47,28 @@ def run(driver):
 
 if __name__ == "__main__":
     print('main')
-    option = webdriver.ChromeOptions()
-    option.add_argument('disable-infobars')
-    driver = webdriver.Chrome(options=option)
-    driver.set_window_size(config.window_size_w, config.window_size_h)
-    driver.implicitly_wait(5)
-    ret = login.run(driver, 'lxhw', '12344321')
-    if (ret != 0):
-
-        print('登陆失败')
-        time.sleep(config.FAIL_WAIT_SLEEP)
-        driver.quit()
+    config.set_host(config.HOST_SOURCE_PRE)
+    if (config.hostSource == None):
+        log.e('未设置数据源')
     else:
-        if toThird.run(driver, '上海明创物流有限公司', '913101167989494335'):
-            print('进账簿失败')
-            time.sleep(config.FAIL_WAIT_SLEEP)
-        else:
-            if run(driver):
-                time.sleep(config.FAIL_WAIT_SLEEP)
-        time.sleep(5)
+        option = webdriver.ChromeOptions()
+        option.add_argument('disable-infobars')
+        driver = webdriver.Chrome(options=option)
+        driver.set_window_size(config.window_size_w, config.window_size_h)
+        driver.implicitly_wait(5)
+        ret = login.run(driver, 'lxhw', '12344321')
+        if (ret != 0):
 
-        driver.quit()
+            print('登陆失败')
+            time.sleep(config.FAIL_WAIT_SLEEP)
+            driver.quit()
+        else:
+            if toThird.run(driver, '上海明创物流有限公司', '913101167989494335'):
+                print('进账簿失败')
+                time.sleep(config.FAIL_WAIT_SLEEP)
+            else:
+                if run(driver):
+                    time.sleep(config.FAIL_WAIT_SLEEP)
+            time.sleep(5)
+
+            driver.quit()

@@ -26,13 +26,21 @@ from operator import eq
 # dbPlatform = conf.get('db', 'dbPlatform')
 from tools import log
 
+SHOW_UI_FALSE='0'
+SHOW_UI_TRUE='1'
 
-RUN_WITH_UNKNOW=0
-RUN_WITH_PYCHARM=1
-RUN_WITH_CMD=2
+global showUI
+showUI = SHOW_UI_TRUE
+def set_showUI(value):
+    global showUI
+    showUI = value
+
+RUN_WITH_UNKNOW='0'
+RUN_WITH_PYCHARM='1'
+RUN_WITH_CMD='2'
 
 global runWith
-runWith = 1
+runWith = RUN_WITH_PYCHARM
 def set_runWith(value):
     global runWith
     runWith = value
@@ -44,8 +52,12 @@ dbPort = int
 dbUser = str
 dbPasswd =str
 dbPlatform =str
+
+HOST_SOURCE_PRE='pre'
+HOST_SOURCE_LINE='online'
+
 hostSource = None
-def set_Host(host):
+def set_host(host):
     global domain
     global dbHost
     global dbPort
@@ -53,7 +65,7 @@ def set_Host(host):
     global dbPasswd
     global dbPlatform
     global hostSource
-    if host=='online':
+    if host==HOST_SOURCE_LINE:
         hostSource= 'online'
         log.i('设置环境参数-生产环境')
         domain = 'http://sstax.cn:1000/'
@@ -62,7 +74,7 @@ def set_Host(host):
         dbUser = 'csdb'
         dbPasswd = 'Pwd!2018@db'
         dbPlatform = 'cs_platform'
-    elif host=='pre':
+    elif host==HOST_SOURCE_PRE:
 
         hostSource= 'pre'
         log.i('设置环境参数-预发布环境')
@@ -77,13 +89,6 @@ def set_Host(host):
 
         hostSource = None
 
-
-# domain = 'http://sstax.cn:1000/'
-# dbHost = '222.73.99.99'
-# dbPort = 3030
-# dbUser = 'csdb'
-# dbPasswd = 'Pwd!2018@db'
-# dbPlatform = 'cs_platform'
 
 
 WHILE_WAIT_SLEEP = 0.2

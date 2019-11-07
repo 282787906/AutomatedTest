@@ -2,6 +2,7 @@ import ctypes
 import inspect
 import os
 import traceback
+import winsound
 from datetime import datetime
 import sys
 
@@ -57,7 +58,13 @@ logLevel = debug | info | warming
 
 dateFormat = "%Y-%m-%d  %H:%M:%S"
 dateFormat = "%H:%M:%S"
+
+
+
 def exception(*strs):
+    if config.runWith == config.RUN_WITH_CMD:
+        winsound.Beep(1000,500)
+
     e(strs)
     et, ev, tb = sys.exc_info()
     if et==None and ev ==None and tb==None:
@@ -84,6 +91,8 @@ def exception(*strs):
 
 
 def e(*strs):
+    if config.runWith == config.RUN_WITH_CMD:
+        winsound.Beep(1000,500)
 
     msgs = datetime.now().strftime(dateFormat) + ' '
     for msg in strs:
@@ -99,6 +108,8 @@ def e(*strs):
 
 
 def w(*strs):
+    if config.runWith == config.RUN_WITH_CMD:
+        winsound.Beep(800,300)
     msgs = datetime.now().strftime(dateFormat) + ' '
     for msg in strs:
         msgs = msgs + ' ' + str(msg)

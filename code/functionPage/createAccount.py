@@ -1,6 +1,6 @@
 import time
 
-from pip._vendor import requests
+import requests
 from selenium import webdriver
 from selenium.webdriver import ActionChains
 from selenium.webdriver.common.keys import Keys
@@ -178,25 +178,29 @@ def run(driver, accountSetInfo):
         return 1
 if __name__=="__main__":
     print('createAccount')
-    option = webdriver.ChromeOptions()
-    option.add_argument('disable-infobars')
-    driver = webdriver.Chrome(options=option)
-    driver.set_window_size(config.window_size_w, config.window_size_h)
-    driver.implicitly_wait(5)
-    ret = login.run(driver, 'lxhw', '12344321')
-    if (ret != 0):
-
-        print('登陆失败')
-        time.sleep(config.FAIL_WAIT_SLEEP)
-        driver.quit()
+    config.set_host(config.HOST_SOURCE_PRE)
+    if (config.hostSource == None):
+        log.e('未设置数据源')
     else:
-        accountSetInfo = AccountSetInfo('companyName1', 'taxidCode000000001', 1, 2018, 8, 1, '小企业会计制度多行业科目体系', '默认组',
-                                        '伊文科技',
-                                        '通用公式')
-        ret = run(driver, accountSetInfo)
+        option = webdriver.ChromeOptions()
+        option.add_argument('disable-infobars')
+        driver = webdriver.Chrome(options=option)
+        driver.set_window_size(config.window_size_w, config.window_size_h)
+        driver.implicitly_wait(5)
+        ret = login.run(driver, 'lxhw', '12344321')
         if (ret != 0):
-            print('建账失败')
-            time.sleep(config.FAIL_WAIT_SLEEP)
 
-        time.sleep(5)
-        driver.quit()
+            print('登陆失败')
+            time.sleep(config.FAIL_WAIT_SLEEP)
+            driver.quit()
+        else:
+            accountSetInfo = AccountSetInfo('回归测试2', 'taxidCode000000002', 1, 2019, 8, 1, '物流行业科目体系', '默认组',
+                                            '伊文科技',
+                                            '通用公式')
+            ret = run(driver, accountSetInfo)
+            if (ret != 0):
+                print('建账失败')
+                time.sleep(config.FAIL_WAIT_SLEEP)
+
+            time.sleep(5)
+            driver.quit()
