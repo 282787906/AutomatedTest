@@ -9,14 +9,14 @@ from conf.config import ACTION_WAIT_SLEEP_LONG, LOAD_PAGE_TIMEOUT, WHILE_WAIT_SL
 from tools.commonSelenium import toPage
 from tools import log
 
-def run(driver, userName, pwd):
-    log.d('登录', userName)
+def run(driver ):
+    log.d('登录')
     try:
         if toPage(driver, config.domain + "/#/login"):
             log.e('登录失败-进入登录页超时')
             return 1
-        driver.find_element_by_name('username').send_keys(userName)
-        driver.find_element_by_name('password').send_keys(pwd)
+        driver.find_element_by_name('username').send_keys(config.userName)
+        driver.find_element_by_name('password').send_keys(config.userPwd)
         time.sleep(ACTION_WAIT_SLEEP_LONG)
         driver.find_element_by_name('btn_login').send_keys(Keys.ENTER)
 
@@ -47,7 +47,7 @@ if __name__=="__main__":
         driver = webdriver.Chrome(options=option)
         driver.set_window_size(config.window_size_w, config.window_size_h)
         driver.implicitly_wait(5)
-        ret = run(driver, 'lxhw', '12344321')
+        ret = run(driver)
         if (ret != 0):
 
             print('登陆失败')

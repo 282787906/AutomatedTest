@@ -56,7 +56,7 @@ if __name__ == "__main__":
         driver = webdriver.Chrome(options=option)
         driver.set_window_size(config.window_size_w, config.window_size_h)
         driver.implicitly_wait(5)
-        ret = login.run(driver, 'lxhw', '12344321')
+        ret = login.run(driver)
         if (ret != 0):
 
             print('登陆失败')

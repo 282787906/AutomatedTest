@@ -1,5 +1,6 @@
 import json
 import os
+import random
 import time
 
 import requests
@@ -10,7 +11,14 @@ from tools import log
 
 
 def run(taxNo, type, count):
-    log.i('cs-info 文件上传')
+    '''
+
+    :param taxNo:
+    :param type: 文件类型 1：收票；2：出票；3：内部流转
+    :param count: 上传数量
+    :return:
+    '''
+    log.d('cs-info 文件上传')
     userName = '615891768@qq.com'
     pwd = '12345678',
     retLogin, userId = csInfoLogin.run(userName, pwd)
@@ -35,7 +43,7 @@ def run(taxNo, type, count):
             case_dir = os.path.dirname(os.path.dirname(__file__)) + '/testCases/tax.jpg'
             for i in range(count):
                 files = {
-                    'files': ('tax' + str(int(time.time())) + '.jpg',  # file是请求参数，要与接口文档中的参数名称一致
+                    'files': ('tax' + str(int(time.time())) +str(random.randint(100000,999999)) + '.jpg',  # file是请求参数，要与接口文档中的参数名称一致
                               open(case_dir, 'rb'),  # 已二进制的形式打开文件
                               'application/msword')  # 上传文件的MIME文件类型，这个必须要有
                 }  # 上传的文件
@@ -66,4 +74,4 @@ if __name__ == "__main__":
     if (config.hostSource == None):
         log.e('未设置数据源')
     else:
-        run('91310116761150572C', 1, 2)
+        run(config.caseTaxId, 3, 2)

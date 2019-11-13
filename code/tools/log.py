@@ -56,9 +56,10 @@ warming = 4
 
 logLevel = debug | info | warming
 
-dateFormat = "%Y-%m-%d  %H:%M:%S"
-dateFormat = "%H:%M:%S"
-
+# dateFormat = "%Y-%m-%d  %H:%M:%S"
+# dateFormat = "%H:%M:%S"
+# if config.runWith == config.RUN_WITH_CMD:
+#     dateFormat = "%Y-%m-%d  %H:%M:%S"
 
 
 def exception(*strs):
@@ -94,7 +95,7 @@ def e(*strs):
     if config.runWith == config.RUN_WITH_CMD:
         winsound.Beep(1000,500)
 
-    msgs = datetime.now().strftime(dateFormat) + ' '
+    msgs = datetime.now().strftime(config.dateFormat) + ' '
     for msg in strs:
         msgs = msgs + ' ' + str(msg)
     if config.runWith==config.RUN_WITH_PYCHARM:
@@ -110,7 +111,7 @@ def e(*strs):
 def w(*strs):
     if config.runWith == config.RUN_WITH_CMD:
         winsound.Beep(800,300)
-    msgs = datetime.now().strftime(dateFormat) + ' '
+    msgs = datetime.now().strftime(config.dateFormat) + ' '
     for msg in strs:
         msgs = msgs + ' ' + str(msg)
     if logLevel & warming == warming:
@@ -124,7 +125,7 @@ def w(*strs):
             print(strs)
 
 def i(*strs):
-    msgs = datetime.now().strftime(dateFormat) + ' '
+    msgs = datetime.now().strftime(config.dateFormat) + ' '
     for msg in strs:
         msgs = msgs + ' ' + str(msg)
     if logLevel & info == info:
@@ -139,7 +140,7 @@ def i(*strs):
 
 
 def d(*strs):
-    msgs = datetime.now().strftime(dateFormat) + ' '
+    msgs = datetime.now().strftime(config.dateFormat) + ' '
     for msg in strs:
         msgs = msgs + ' ' + str(msg)
     if logLevel & debug == debug:

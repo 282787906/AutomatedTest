@@ -29,7 +29,7 @@ class AutoUI(unittest.TestCase):
         self.driver.implicitly_wait(5)
     def login(self):
 
-        ret = login.run(self.driver, 'lxhw', '12344321')
+        ret = login.run(self.driver)
         if (ret != 0):
             time.sleep(60)
             print('登陆失败')
@@ -42,7 +42,7 @@ class AutoUI(unittest.TestCase):
         #     time.sleep(60)
         #     log.e('新增凭证失败', ret)
     def add(self):
-        ret = login.run(self.driver, 'lxhw', '12344321')
+        ret = login.run(self.driver)
         if (ret != 0):
             time.sleep(60)
             print('登陆失败')

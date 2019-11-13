@@ -99,7 +99,7 @@ def run():
                 #     log.w('status_code:', retCode, 'msg:', msg)
                 #     mailMsg = mailMsg + "third调用 code:" + str(retCode) + "  " + msg + '\n'
                 if len(mailMsg) > 0:
-                    # mail.send("财税警告", mailMsg)
+                    mail.send("财税警告", mailMsg)
                     log.e("财税警告", mailMsg)
                 else:
                     log.i('状态正常\n')
@@ -113,7 +113,7 @@ def run():
 
 if __name__ == "__main__":
     print('DbMonitor')
-    config.set_host(config.HOST_SOURCE_PRE)
+    config.set_host(config.HOST_SOURCE_ON_LINE)
     if(config.hostSource==None):
         log.e('未设置数据源')
     else:

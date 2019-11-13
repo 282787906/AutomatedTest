@@ -21,30 +21,27 @@ def run(driver):
     if len(documents) == 0:
         log.w('加载凭证文件数量为0')
         return 1
-    if toThird.run(driver, documents[0][0].company_name, documents[0][0].tax_id):
+    # if toThird.run(driver, documents[0][0].company_name, documents[0][0].tax_id):
+    if toThird.run(driver, config.caseCompanyName, config.caseTaxId):
         print('进账簿失败', ret)
         return 1
     if toPage(driver,config.domain + "/cs-third/cer/certificate/toAddCertificate"):
         return 1
-    alertDiv = driver.find_element_by_id('alertDiv')
-    startX = alertDiv.location['x'] + 100 + 135
-    startY = alertDiv.location['y'] + 150
+    # alertDiv = driver.find_element_by_id('alertDiv')
+    # startX = alertDiv.location['x'] + 100 + 135
+    # startY = alertDiv.location['y'] + 150
 
 
     for document in documents:
-        times = 0
-        maxTimes = int(LOAD_PAGE_TIMEOUT / WHILE_WAIT_SLEEP)
-        while (times < maxTimes):
-            if ('零元整' == driver.find_element_by_id('hjjesx').text):
-                break
-            times = times + 1
-            if times==maxTimes:
-                log.e('新增凭证保存等待 超时')
-                return 1
-            time.sleep(WHILE_WAIT_SLEEP)
 
-        mouseLeftDoubleClick(driver, startX, startY)
 
+        # mouseLeftDoubleClick(driver, startX, startY)
+        # driver.find_element_by_class_name('zy-text').d
+        # driver.find_elements_by_class_name('zy-text')[0].
+
+        time.sleep(config.ACTION_WAIT_SLEEP_LONG)
+        ActionChains(driver).move_to_element(driver.find_elements_by_class_name('zy-text')[0]).double_click().perform()
+        time.sleep(config.ACTION_WAIT_SLEEP_LONG)
         for index in range(len(document)):
             documentDetail = document[index]
             clearElement(driver.switch_to.active_element)
@@ -110,6 +107,16 @@ def run(driver):
 
         time.sleep(config.ACTION_WAIT_SLEEP_SHORT)
         driver.find_element_by_id('btn_xzpz_add_and_save').send_keys(Keys.ENTER)
+        times = 0
+        maxTimes = int(LOAD_PAGE_TIMEOUT / WHILE_WAIT_SLEEP)
+        while (times < maxTimes):
+            if ('零元整' == driver.find_element_by_id('hjjesx').text):
+                break
+            times = times + 1
+            if times == maxTimes:
+                log.e('新增凭证保存等待 超时')
+                return 1
+            time.sleep(WHILE_WAIT_SLEEP)
 
     log.i('新增凭证完成')
     return 0
@@ -124,7 +131,7 @@ if __name__=="__main__":
         driver = webdriver.Chrome(options=option)
         driver.set_window_size(config.window_size_w, config.window_size_h)
         driver.implicitly_wait(5)
-        ret = login.run(driver, 'lxhw', '12344321')
+        ret = login.run(driver)
         if (ret != 0):
 
             print('登陆失败')

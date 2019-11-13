@@ -19,11 +19,91 @@ from tools.excelTools import read_documentInput
 from tools.mySqlHelper import getTemplateSubjectById
 
 
-def run(driver):
+def addNewBank(driver, detailAccountName):
+    driver.find_element_by_id('zkm_add').click()
+    time.sleep(config.ACTION_WAIT_SLEEP_SHORT)
+    accountName = detailAccountName.split('_')[len(detailAccountName.split('_')) - 1]
 
+    time.sleep(config.ACTION_WAIT_SLEEP_SHORT)
+    driver.find_element_by_id('accountName').send_keys(accountName)
+    time.sleep(config.ACTION_WAIT_SLEEP_SHORT)
+
+    driver.find_element_by_id('add_Yh_sub').click()
+    time.sleep(config.ACTION_WAIT_SLEEP_SHORT)
+    driver.find_element_by_id('zkm_sub').click()
+
+
+def chooseBank(driver, detail):
+    times = 0
+    maxTimes = int(LOAD_PAGE_TIMEOUT / WHILE_WAIT_SLEEP)
+    while times < maxTimes:
+        time.sleep(ACTION_WAIT_SLEEP_LONG)
+        select2ZzkmContainer = driver.find_element_by_id('select2-zkm-container')
+        if select2ZzkmContainer != None:
+            break
+        # elements = driver.find_elements_by_class_name('select2-selection')
+        times = times + 1
+        if times == maxTimes:
+            log.e("等待弹出框超时——选择银行")
+            return 1
+        time.sleep(WHILE_WAIT_SLEEP)
+        # ActionChains(driver).move_to_element(
+        #     driver.find_element_by_class_name('sz-zkm')).click().perform()
+
+        driver.find_element_by_class_name('sz-zkm').click()
+    driver.find_element_by_id('select2-zkm-container').click()
+
+    time.sleep(ACTION_WAIT_SLEEP_LONG)
+    driver.find_element_by_class_name('select2-search__field').send_keys(detail.account_code)
+
+    maxTimes = int(LOAD_PAGE_TIMEOUT / WHILE_WAIT_SLEEP)
+    times = 0
+    while times < maxTimes:
+        result=driver.find_element_by_class_name('select2-results__option').text
+        if result == 'No results found' :
+            log.w('银行不存在', detail.account_code)
+
+            driver.find_element_by_id('select2-zkm-container').click()
+
+            time.sleep(ACTION_WAIT_SLEEP_SHORT)
+            addNewBank(driver,detail.account_name)
+            chooseBank(driver,detail)
+        elif detail.account_code + '--' in driver.find_element_by_class_name(
+                'select2-results__option').text:
+            driver.switch_to.active_element.send_keys(Keys.DOWN)
+            driver.switch_to.active_element.send_keys(Keys.ENTER)
+            driver.find_element_by_id('zkm_sub').click()
+            break
+        times = times + 1
+        time.sleep(WHILE_WAIT_SLEEP)
+
+def waitToast(driver,functionName,successMsg):
+    times = 0
+    maxTimes = int(LOAD_PAGE_TIMEOUT / WHILE_WAIT_SLEEP)
+    while times < maxTimes:
+        try:
+            alert = WebDriverWait(driver, 10, poll_frequency=0.2).until(
+                lambda x: x.find_element_by_id("gritter-notice-wrapper"))
+            # log.w(alert.text)
+            if successMsg in alert.text:
+                log.w(functionName, successMsg,alert.text)
+                return 0
+        except TimeoutException:
+            log.w(functionName,'TimeoutException')
+            return 1
+        except:
+            log.exception(functionName)
+            return 1
+
+        times = times + 1
+        if times == maxTimes:
+            log.e(functionName, '等待超时' )
+            return 1
+        time.sleep(WHILE_WAIT_SLEEP)
+def run(driver):
     log.d('录入凭证')
     try:
-        ret, documents, msg = read_documentInput( )
+        ret, documents, msg = read_documentInput()
         if ret != 0:
             log.e('加载凭证文件失败', msg)
             return 1
@@ -43,13 +123,12 @@ def run(driver):
 
         document = documents[0]
         if commonSelenium.toPage(driver, config.domain + "/cs-third/cer/certificate/toCertificateInput"):
-
             log.w('加载凭证录入页面超时')
             return 1
 
-        driver.find_element_by_id('uniformCreditCode').send_keys(document[0].tax_no)
+        driver.find_element_by_id('uniformCreditCode').send_keys(config.caseTaxId)
         driver.find_element_by_id('currentDate').click()
-        years = document[0].year - int(driver.find_elements_by_class_name('datepicker-switch')[1].text)
+        years =config.caseCurrentAccountYear - int(driver.find_elements_by_class_name('datepicker-switch')[1].text)
 
         if years < 0:
             for i in range(-1 * years):  # <<
@@ -61,10 +140,13 @@ def run(driver):
                 time.sleep(ACTION_WAIT_SLEEP_SHORT)
         months = driver.find_elements_by_class_name('month')
         for month in months:
-            if str(document[0].month) in month.text:
+            if str(config.caseCurrentAccountMonth) in month.text:
                 ActionChains(driver).move_to_element(month).click().perform()
                 break
         isOpenOriginCertificate = 0
+        isCsInfoFileUploadSp=0
+        isCsInfoFileUploadCp=0
+        isCsInfoFileUploadNblz=0
         for documentIndex in range(len(documents)):
 
             document = documents[documentIndex]
@@ -86,17 +168,20 @@ def run(driver):
                 time.sleep(ACTION_WAIT_SLEEP_LONG)
             count = int(driver.find_element_by_class_name('allcount').text.split('   ')[1][4:])
 
-            if document[0].type == 1 and count < spCount:
-                log.e('原始凭证收票数量不足', count, spCount)
-                if csInfoFileUpload.run( document[0].tax_no, document[0].type,spCount-count): #文件上传失败
+            if  isCsInfoFileUploadSp==0 and document[0].type == 1 and count < spCount:
+                isCsInfoFileUploadSp=1
+                log.w('原始凭证收票数量不足','当前数量：', count,'需要数量', spCount)
+                if csInfoFileUpload.run(config.caseTaxId, document[0].type, spCount - count):  # 文件上传失败
                     return 1
-            if document[0].type == 2 and count < cpCount:
-                log.e('原始凭证出票数量不足', count, cpCount)
-                if csInfoFileUpload.run(document[0].tax_no, document[0].type,cpCount-count): #文件上传失败
+            if isCsInfoFileUploadCp==0 and document[0].type == 2 and count < cpCount:
+                isCsInfoFileUploadCp=1
+                log.w('原始凭证出票数量不足', '当前数量：', count,'需要数量', cpCount)
+                if csInfoFileUpload.run(config.caseTaxId, document[0].type, cpCount - count):  # 文件上传失败
                     return 1
-            if document[0].type == 3 and count < nblzCount:
-                log.e('原始凭证内部流转数量不足', count, nblzCount)
-                if csInfoFileUpload.run(document[0].tax_no, document[0].type,nblzCount-count): #文件上传失败
+            if isCsInfoFileUploadNblz==0 and document[0].type == 3 and count < nblzCount:
+                isCsInfoFileUploadNblz=1
+                log.w('原始凭证内部流转数量不足', '当前数量：', count,'需要数量', nblzCount)
+                if csInfoFileUpload.run(config.caseTaxId, document[0].type, nblzCount - count):  # 文件上传失败
                     return 1
             divBtn = driver.find_element_by_id('divBtn')
             ActionChains(driver).move_to_element(divBtn).perform()
@@ -152,6 +237,7 @@ def run(driver):
                                 elementInput.send_keys(str(detail.debit_amount))
                         # else:
                         if getFeatureCdByCode(template.kmCode) == 2:  # 银行
+                            hasBank = 1
                             # sz_zkm=driver.find_element(By.CLASS_NAME,'sz-zkm')
                             sz_zkm = driver.find_element_by_class_name('sz-zkm')
                             print('location', driver.find_element_by_class_name('sz-zkm').location['x'],
@@ -168,36 +254,26 @@ def run(driver):
                             time.sleep(ACTION_WAIT_SLEEP_LONG)
                             driver.find_element_by_class_name('sz-zkm').click()
                             time.sleep(ACTION_WAIT_SLEEP_LONG)
-                            while (count < LOAD_PAGE_TIMEOUT):
-                                time.sleep(ACTION_WAIT_SLEEP_LONG)
-                                select2ZzkmContainer = driver.find_element_by_id('select2-zkm-container')
-                                if select2ZzkmContainer != None:
-                                    break
-                                # elements = driver.find_elements_by_class_name('select2-selection')
-                                count = count + 1
-                                if count == LOAD_PAGE_TIMEOUT:
-                                    log.e("等待弹出框超时——选择银行")
-                                    return 1
-                                time.sleep(WHILE_WAIT_SLEEP)
-                                # ActionChains(driver).move_to_element(
-                                #     driver.find_element_by_class_name('sz-zkm')).click().perform()
 
-                                driver.find_element_by_class_name('sz-zkm').click()
-                            driver.find_element_by_id('select2-zkm-container').click()
+                            try:
+                                alert = WebDriverWait(driver, 1, poll_frequency=0.2).until(
+                                    lambda x: x.find_element_by_id("zkmNoData"))
+                                log.w(alert.text)
+                                if '暂无子科目数据' in alert.text and alert.is_displayed():
+                                    addNewBank(driver, detail.account_name)
+                                else:
 
-                            time.sleep(ACTION_WAIT_SLEEP_LONG)
-                            driver.find_element_by_class_name('select2-search__field').send_keys(detail.account_code)
-                            hasBank = 1
-                            count = 0
-                            while (count < LOAD_PAGE_TIMEOUT):
-                                if detail.account_code + '--' in driver.find_element_by_class_name(
-                                        'select2-results__option').text:
-                                    driver.switch_to_active_element().send_keys(Keys.DOWN)
-                                    driver.switch_to_active_element().send_keys(Keys.ENTER)
-                                    break
-                                count = count + 1
-                                time.sleep(WHILE_WAIT_SLEEP)
-                            driver.find_element_by_id('zkm_sub').click()
+                                    chooseBank(driver, detail)
+
+                            except TimeoutException:
+                                log.w(alert.text)
+
+                                chooseBank(driver, detail)
+
+
+                            except:
+                                log.exception('凭证录入-点击银行等待异常')
+                                return 1
                         elif getFeatureCdByCode(template.kmCode) == 4 or getFeatureCdByCode(template.kmCode) == 5:  # 往来
                             count = 0
                             # ActionChains(driver).move_to_element(
@@ -208,14 +284,16 @@ def run(driver):
                             time.sleep(ACTION_WAIT_SLEEP_LONG)
                             if hasBank == 1:
                                 elements = driver.find_elements_by_class_name('select2-selection')
-                                while (count < LOAD_PAGE_TIMEOUT):
+                                times = 0
+                                maxTimes = int(LOAD_PAGE_TIMEOUT / WHILE_WAIT_SLEEP)
+                                while times < maxTimes:
                                     time.sleep(WHILE_WAIT_SLEEP)
 
                                     if len(elements) == 2:
                                         break
                                     elements = driver.find_elements_by_class_name('select2-selection')
-                                    count = count + 1
-                                    if count == LOAD_PAGE_TIMEOUT:
+                                    times = times + 1
+                                    if times == maxTimes:
                                         log.e("等待弹出框超时——选择往来")
                                         return 1
                                     time.sleep(WHILE_WAIT_SLEEP)
@@ -228,23 +306,18 @@ def run(driver):
                                 ActionChains(driver).move_to_element(
                                     driver.find_element_by_class_name('select2-selection')).click().perform()
 
-                            # select2_selection= WebDriverWait(driver,10).until(lambda driver:driver.find_element_by_class_name('select2-selection'))
-                            # ActionChains(driver).move_to_element(select2_selection).click().perform()
-                            # driver.find_element_by_id('select2-wldw-container').click()
-                            # WebDriverWait(driver, 10).until(
-                            #     lambda driver: driver.find_element_by_id('select2-wldw-container')).click()
-
                             time.sleep(ACTION_WAIT_SLEEP_LONG)
                             driver.find_element_by_class_name('select2-search__field').send_keys(detail.partner_name)
                             time.sleep(ACTION_WAIT_SLEEP_LONG)
-                            count = 0
-                            while (count < LOAD_PAGE_TIMEOUT):
-                                partner=driver.find_element_by_class_name('select2-results__option').text
-                                if detail.partner_name ==partner or '公司--'+detail.partner_name ==partner :
+                            times = 0
+                            maxTimes = int(LOAD_PAGE_TIMEOUT / WHILE_WAIT_SLEEP)
+                            while times < maxTimes:
+                                partner = driver.find_element_by_class_name('select2-results__option').text
+                                if detail.partner_name == partner or '公司--' + detail.partner_name == partner:
                                     driver.switch_to.active_element.send_keys(Keys.DOWN)
                                     driver.switch_to.active_element.send_keys(Keys.ENTER)
                                     break
-                                if partner == 'No results found' :
+                                if partner == 'No results found':
                                     log.w('往来单位不存在', detail.partner_name)
 
                                     ActionChains(driver).move_to_element(
@@ -258,9 +331,21 @@ def run(driver):
 
                                     time.sleep(config.ACTION_WAIT_SLEEP_SHORT)
                                     driver.find_element_by_id('add_wldw_sub').click()
+
+                                    time.sleep(config.ACTION_WAIT_SLEEP_LONG)
+                                    if detail.partner_name not in driver.find_element_by_class_name('select2-selection').text:
+
+                                        log.i( '添加往来_关联科目失败',detail.partner_name)
+                                        return 1
+                                    # waitToast(driver,'新增往来单位','保存成功')
                                     break
-                                count = count + 1
+                                times = times + 1
+                                if times == maxTimes:
+                                    log.e(documentIndex, '录入凭证——添加往来等待超时', detail.document_id)
+                                    return 1
                                 time.sleep(WHILE_WAIT_SLEEP)
+
+                            time.sleep(ACTION_WAIT_SLEEP_LONG)
                             driver.find_element_by_id('wldw_sub').click()
             currentImgIdOld = driver.get_cookie('current_img_id')['value']
             driver.find_element_by_id("remark").send_keys("selenium 录入")
@@ -277,23 +362,23 @@ def run(driver):
                         lambda x: x.find_element_by_id("gritter-notice-wrapper"))
                     # log.w(alert.text)
                     if '保存成功' in alert.text:
-                        log.i(documentIndex, '录入凭证成功', detail.document_id)
+                        log.i(documentIndex, '录入凭证成功' )
                         break
 
                 except TimeoutException:
-                     pass
+                    pass
                 except:
                     log.exception('录入凭证异常')
                     return 1
                 currentImgIdNew = driver.get_cookie('current_img_id')['value']
 
-                log.d('点击保存等待', count, 'currentImgIdNew', currentImgIdNew, 'currentImgIdOld', currentImgIdOld)
+                log.d('点击保存等待', times, 'currentImgIdNew', currentImgIdNew, 'currentImgIdOld', currentImgIdOld)
                 if currentImgIdNew != currentImgIdOld:
                     # print('currentImgIdNew', currentImgIdNew, 'currentImgIdOld', currentImgIdOld)
                     log.i(documentIndex, '录入凭证成功', detail.document_id)
                     break
                 times = times + 1
-                if count == LOAD_PAGE_TIMEOUT:
+                if times == maxTimes:
                     log.e(documentIndex, '录入凭证保存等待超时', detail.document_id)
                     return 1
                 time.sleep(WHILE_WAIT_SLEEP)
@@ -304,11 +389,11 @@ def run(driver):
         return 0
     except BaseException as e:
         r = requests.get(driver.current_url, allow_redirects=False)
-        log.exception('录入凭证异常',r.status_code )
+        log.exception('录入凭证异常', r.status_code)
         return 1
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     print('main')
     config.set_host(config.HOST_SOURCE_PRE)
     if (config.hostSource == None):
@@ -319,7 +404,7 @@ if __name__=="__main__":
         driver = webdriver.Chrome(options=option)
         driver.set_window_size(config.window_size_w, config.window_size_h)
         driver.implicitly_wait(5)
-        ret = login.run(driver, 'lxhw', '12344321')
+        ret = login.run(driver)
         if (ret != 0):
 
             print('登陆失败')
@@ -333,4 +418,3 @@ if __name__=="__main__":
 
             time.sleep(5)
             driver.quit()
-

@@ -7,7 +7,7 @@ from tools import log
 
 
 def run(userName ,pwd):
-    log.i('cs-info 登录')
+    log.d('cs-info 登录')
     kv = {'userName': userName, 'pwd': pwd}
     response = requests.get(config.domain + '/cs-info/user/login', params=kv, allow_redirects=False)
     response.encoding = 'utf-8'

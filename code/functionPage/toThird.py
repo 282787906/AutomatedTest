@@ -18,18 +18,24 @@ def run(driver, company, tax):
     :param tax:
     :return: 0 成功 1 失败
     '''
-    log.d('进账簿', company)
+
     try:
+
+        if 'cs-third' in driver.current_url:
+            header = driver.find_element_by_xpath("//div[@class = 'container-fluid']/div[1]/div")
+            if header.get_attribute("class") == 'third-nav' and tax == driver.get_cookie('tax_code')[
+                'value'] and company == driver.find_element_by_class_name('company-name').text:
+                return 0
         if commonSelenium.toPage(driver, config.domain + "/#/third/customer"):
             log.e("进账簿失败-进入客户列表超时：", driver.current_url)
             return 1
-        if company==None and tax==None:
-            companys=driver.find_elements_by_xpath("//ul[@class ='el-pager']/li")
-            companys[random.randint(0,len(companys)-1)].click()
+        if company == None and tax == None:
+            companys = driver.find_elements_by_xpath("//ul[@class ='el-pager']/li")
+            companys[random.randint(0, len(companys) - 1)].click()
             time.sleep(config.ACTION_WAIT_SLEEP_SHORT)
             elements = driver.find_elements_by_name('btn_to_third')
             elements_name = driver.find_elements_by_name('span_companyName')[0].text
-            log.i("进账簿-随机进账簿",elements_name)
+            log.i("进账簿-随机进账簿", elements_name)
             time.sleep(config.ACTION_WAIT_SLEEP_SHORT)
             elements[0].send_keys(Keys.ENTER)
 
@@ -42,6 +48,7 @@ def run(driver, company, tax):
                 elements = driver.find_elements_by_name('btn_to_third')
                 elements_name = driver.find_elements_by_name('span_companyName')
                 if len(elements) == 1 and len(elements_name) == 1 and elements_name[0].text == company:
+                    log.d('进账簿', company)
                     break
                 times = times + 1
                 if times == maxTimes:
@@ -65,7 +72,7 @@ def run(driver, company, tax):
             time.sleep(config.WHILE_WAIT_SLEEP)
         if company == None and tax == None:
             if elements_name == driver.find_element_by_class_name('company-name').text:
-                return 0  #随机进账簿
+                return 0  # 随机进账簿
         if company == driver.find_element_by_class_name('company-name').text and \
                 tax == driver.get_cookie('tax_code')['value']:
             return 0
@@ -90,7 +97,7 @@ if __name__ == "__main__":
         driver = webdriver.Chrome(options=option)
         driver.set_window_size(config.window_size_w, config.window_size_h)
         driver.implicitly_wait(5)
-        ret = login.run(driver, 'lxhw', '12344321')
+        ret = login.run(driver)
         if (ret != 0):
 
             print('登陆失败')
@@ -102,5 +109,4 @@ if __name__ == "__main__":
             if (ret != 0):
                 time.sleep(config.FAIL_WAIT_SLEEP)
             time.sleep(5)
-
             driver.quit()

@@ -3,6 +3,7 @@ import os
 import xlrd
 from datetime import date, datetime
 
+from conf import config
 from module.DocumentDetailAdd import DocumentDetailAdd
 from module.DocumentDetailInput import DocumentDetailInput
 
@@ -28,6 +29,69 @@ def read_excel():
     print(sheet1.row(1)[0].value)
 
 
+def read_CompanyInfo():
+    log.d('读取用例公司信息excel文件')
+    dir = os.path.dirname(__file__)
+    parent_path = os.path.dirname(dir)
+    filename = parent_path + '/testCases/csae_document.xlsx'  # 根据项目所在路径，找到用例所在的相对项目的路径
+    wb = xlrd.open_workbook(filename=filename)  # 打开文件
+    company_name_index = int
+    tax_id_index = int
+    current_account_year_index = int
+    current_account_month_index = int
+    user_name_index = int
+    user_pwd_index = int
+    host_type_index = int
+
+    sheet1 = wb.sheet_by_name('用例信息')  # 通过索引获取表格
+    for index in range(sheet1.ncols):
+
+        if ('company_name' == sheet1.cell_value(0, index)):
+            company_name_index = index
+        if ('tax_id' == sheet1.cell_value(0, index)):
+            tax_id_index = index
+        if ('current_account_year' == sheet1.cell_value(0, index)):
+            current_account_year_index = index
+        if ('current_account_month' == sheet1.cell_value(0, index)):
+            current_account_month_index = index
+        if ('user_name' == sheet1.cell_value(0, index)):
+            user_name_index = index
+        if ('user_pwd' == sheet1.cell_value(0, index)):
+            user_pwd_index = index
+        if ('host_type' == sheet1.cell_value(0, index)):
+            host_type_index = index
+    company_name = sheet1.cell_value(1, company_name_index)
+    tax_id = sheet1.cell_value(1, tax_id_index)
+    current_account_year = int(sheet1.cell_value(1, current_account_year_index))
+    current_account_month = int(sheet1.cell_value(1, current_account_month_index))
+    # user_name = sheet1.cell_value(1, user_name_index)
+    ctype = sheet1.cell(1, user_name_index).ctype  # 表格的数据类型
+    if ctype == 2 and sheet1.cell_value(1, user_name_index) % 1 == 0:  # 如果是整形
+        user_name = int(sheet1.cell_value(1, user_name_index))
+    else:
+        user_name = sheet1.cell_value(1, user_name_index)
+
+
+    ctype = sheet1.cell(1, user_pwd_index).ctype  # 表格的数据类型
+    if ctype == 2 and sheet1.cell_value(1, user_pwd_index) % 1 == 0:  # 如果是整形
+        user_pwd = int(sheet1.cell_value(1, user_pwd_index))
+    else:
+        user_pwd = sheet1.cell_value(1, user_pwd_index)
+
+
+    host_type = sheet1.cell_value(1, host_type_index)
+
+
+
+    config.set_caseCompanyName(company_name)
+    config.set_caseTaxId(tax_id)
+    config.set_caseCurrentAccountYear(current_account_year)
+    config.set_caseCurrentAccountMonth(current_account_month)
+    config.set_host(host_type)
+    config.set_userName(user_name)
+    config.set_userPwd(user_pwd)
+    return 0
+
 def read_documentAdd():
     log.d('读取凭证excel文件')
     dir = os.path.dirname(__file__)
@@ -39,6 +103,7 @@ def read_documentAdd():
     document_id_index = int
     summary_index = int
     account_code_index = int
+    account_name_index = int
     account_feature_cd_index = int
     credit_amount_index = int
     debit_amount_index = int
@@ -59,6 +124,8 @@ def read_documentAdd():
 
         if ('account_code' == sheet1.cell_value(0, index)):
             account_code_index = index
+        if ('account_name' == sheet1.cell_value(0, index)):
+            account_name_index = index
         if ('account_feature_cd' == sheet1.cell_value(0, index)):
             account_feature_cd_index = index
         if ('credit_amount' == sheet1.cell_value(0, index)):
@@ -91,7 +158,13 @@ def read_documentAdd():
         document_id = sheet1.cell_value(index, document_id_index)
         summary = sheet1.cell_value(index, summary_index)
 
-        account_code = str(sheet1.cell_value(index, account_code_index))
+        # account_code = str(sheet1.cell_value(index, account_code_index))
+        ctype = sheet1.cell(index, account_code_index).ctype  # 表格的数据类型
+        if ctype == 2 and sheet1.cell_value(index, account_code_index) % 1 == 0:  # 如果是整形
+            account_code = str(int(sheet1.cell_value(index, account_code_index)))
+        else:
+            account_code = sheet1.cell_value(index, account_code_index)
+
         account_name = ''
         ctype = sheet1.cell(index, account_feature_cd_index).ctype  # 表格的数据类型
         if ctype == 2 and sheet1.cell_value(index, account_feature_cd_index) % 1 == 0:  # 如果是整形
@@ -153,6 +226,7 @@ def read_documentInput():
     TEMPLATE_ID_index = int
     TEMPLATED_NAME_index = int
     account_code_index = int
+    account_name_index = int
     account_feature_cd_index = int
     credit_amount_index = int
     debit_amount_index = int
@@ -180,6 +254,8 @@ def read_documentInput():
             TEMPLATED_NAME_index = index
         if ('account_code' == sheet1.cell_value(0, index)):
             account_code_index = index
+        if ('account_name' == sheet1.cell_value(0, index)):
+            account_name_index = index
         if ('account_feature_cd' == sheet1.cell_value(0, index)):
             account_feature_cd_index = index
         if ('credit_amount' == sheet1.cell_value(0, index)):
@@ -217,8 +293,16 @@ def read_documentInput():
         TEMPLATED_ID = int(sheet1.cell_value(index, TEMPLATE_ID_index))
         TEMPLATED_NAME = sheet1.cell_value(index, TEMPLATED_NAME_index)
 
-        account_code = str(sheet1.cell_value(index, account_code_index))
-        account_name = ''
+        # account_code = str(sheet1.cell_value(index, account_code_index))
+
+        ctype = sheet1.cell(index, account_code_index).ctype  # 表格的数据类型
+        if ctype == 2 and sheet1.cell_value(index, account_code_index) % 1 == 0:  # 如果是整形
+            account_code = str(int(sheet1.cell_value(index, account_code_index)))
+        else:
+            account_code = sheet1.cell_value(index, account_code_index)
+
+
+        account_name = sheet1.cell_value(index, account_name_index)
         ctype = sheet1.cell(index, account_feature_cd_index).ctype  # 表格的数据类型
         if ctype == 2 and sheet1.cell_value(index, account_feature_cd_index) % 1 == 0:  # 如果是整形
             account_feature_cd = int(sheet1.cell_value(index, account_feature_cd_index))
@@ -231,7 +315,12 @@ def read_documentInput():
 
         # if debit_amount != '\\N':
         # print(debit_amount)
-        partner_code = sheet1.cell_value(index, partner_code_index)
+        # partner_code = sheet1.cell_value(index, partner_code_index)
+        ctype = sheet1.cell(index, partner_code_index).ctype  # 表格的数据类型
+        if ctype == 2 and sheet1.cell_value(index, partner_code_index) % 1 == 0:  # 如果是整形
+            partner_code = str(int(sheet1.cell_value(index, partner_code_index)))
+        else:
+            partner_code = sheet1.cell_value(index, partner_code_index)
         partner_name = sheet1.cell_value(index, partner_name_index)
         # if credit_amount != '\\N':
         # print(credit_amount)
@@ -279,6 +368,7 @@ if __name__ == "__main__":
     dir = os.path.dirname(__file__)
     parent_path = os.path.dirname(dir)
     case_dir = parent_path + '/testCases/csae_document.xlsx'  # 根据项目所在路径，找到用例所在的相对项目的路径
-    ret, documents, msg = read_documentAdd( )
-
+    ret, documents, msg = read_documentInput( )
+    read_CompanyInfo()
+    log.i(config.caseCompanyName)
     log.d(documents)

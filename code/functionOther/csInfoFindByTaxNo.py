@@ -7,7 +7,7 @@ from tools import log
 
 
 def run(taxId):
-    log.i('cs-info 查询企业')
+    log.d('cs-info 查询企业')
     kv = {'taxNo': taxId}
     response = requests.get(config.domain + '/cs-info/customer/findByTaxNo', params=kv, allow_redirects=False)
     response.encoding = 'utf-8'
@@ -33,7 +33,7 @@ def run(taxId):
 
 
 def runWithDate(taxId, year, month):
-    log.i('cs-info 带年月参数查询企业')
+    log.d('cs-info 带年月参数查询企业')
     kv = {'taxNo': taxId, 'year': year, 'month': month}
     response = requests.get(config.domain + '/cs-info/customer/findByTaxNo', params=kv, allow_redirects=False)
     response.encoding = 'utf-8'
@@ -52,7 +52,7 @@ def runWithDate(taxId, year, month):
             return 0,company,taxNo, id, uid, accountSystem, year, month,  invoiceNo
         else:
 
-            log.e('带年月参数查询失败', ret['msg'])
+            log.e('带年月参数查询失败',taxId, ret['msg'])
     else:
         log.e('登录失败 http请求失败：', response.status_code)
 

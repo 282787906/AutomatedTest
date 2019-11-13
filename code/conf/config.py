@@ -24,7 +24,13 @@ from operator import eq
 # dbUser = conf.get('db', 'user')
 # dbPasswd = conf.get('db', 'passwd')
 # dbPlatform = conf.get('db', 'dbPlatform')
-from tools import log
+from tools import log, excelTools
+
+
+# dateFormat = "%Y-%m-%d  %H:%M:%S"
+dateFormat = "%H:%M:%S"
+
+
 
 SHOW_UI_FALSE='0'
 SHOW_UI_TRUE='1'
@@ -39,11 +45,57 @@ RUN_WITH_UNKNOW='0'
 RUN_WITH_PYCHARM='1'
 RUN_WITH_CMD='2'
 
+
+global userName
+userName = str
+def set_userName(value):
+    global userName
+    userName = value
+
+
+global userPwd
+userPwd = str
+
+def set_userPwd(value):
+    global userPwd
+    userPwd = value
+
+global caseCompanyName
+caseCompanyName = str
+def set_caseCompanyName(value):
+    global caseCompanyName
+    caseCompanyName = value
+
+global caseTaxId
+caseTaxId = str
+def set_caseTaxId(value):
+    global caseTaxId
+    caseTaxId = value
+
+global caseCurrentAccountMonth
+caseCurrentAccountMonth = int
+def set_caseCurrentAccountMonth(value):
+    global caseCurrentAccountMonth
+    caseCurrentAccountMonth = value
+
+global caseCurrentAccountYear
+caseCurrentAccountYear =int
+def set_caseCurrentAccountYear(value):
+    global caseCurrentAccountYear
+    caseCurrentAccountYear = value
+
+
 global runWith
 runWith = RUN_WITH_PYCHARM
 def set_runWith(value):
     global runWith
     runWith = value
+
+
+    global dateFormat
+    if runWith == RUN_WITH_CMD:
+        dateFormat = "%Y-%m-%d  %H:%M:%S"
+
 
 
 domain = str
@@ -54,7 +106,7 @@ dbPasswd =str
 dbPlatform =str
 
 HOST_SOURCE_PRE='pre'
-HOST_SOURCE_LINE='online'
+HOST_SOURCE_ON_LINE= 'online'
 
 hostSource = None
 def set_host(host):
@@ -65,7 +117,7 @@ def set_host(host):
     global dbPasswd
     global dbPlatform
     global hostSource
-    if host==HOST_SOURCE_LINE:
+    if host==HOST_SOURCE_ON_LINE:
         hostSource= 'online'
         log.i('设置环境参数-生产环境')
         domain = 'http://sstax.cn:1000/'
@@ -92,8 +144,8 @@ def set_host(host):
 
 
 WHILE_WAIT_SLEEP = 0.2
-ACTION_WAIT_SLEEP_SHORT = 0.2
-ACTION_WAIT_SLEEP_LONG = 0.3
+ACTION_WAIT_SLEEP_SHORT = 0.5
+ACTION_WAIT_SLEEP_LONG = 1
 LOAD_PAGE_TIMEOUT = 10
 FAIL_WAIT_SLEEP=20
 
@@ -102,3 +154,4 @@ window_size_h = 900
 
 current_x = 0
 current_y = 0
+excelTools.read_CompanyInfo()

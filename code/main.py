@@ -5,12 +5,14 @@ from selenium import webdriver
 
 from conf import config
 from conf.config import window_size_w, window_size_h
-from functionPage import login, toCertificateInput, addCertificate, certificateList, toThird
-from tools import log
+from functionOther import apiBalanceSheetList
+from functionPage import login, toCertificateInput, addCertificate, certificateList, toThird, initqmjz, \
+    toSettleAccounts, originCertificate, kmqcfun, contactsunitlist
+from tools import log, commonSelenium
 
-if __name__=="__main__":
+if __name__ == "__main__":
     print('main')
-    config.set_host(config.HOST_SOURCE_PRE)
+    # config.set_host(config.HOST_SOURCE_PRE)
     if (config.hostSource == None):
         log.e('未设置数据源')
     else:
@@ -19,29 +21,73 @@ if __name__=="__main__":
         driver = webdriver.Chrome(options=option)
         driver.set_window_size(window_size_w, window_size_h)
         driver.implicitly_wait(5)
-        ret = login.run(driver, 'lxhw', '12344321')
+        ret = login.run(driver)
         if (ret != 0):
-
             time.sleep(60)
             print('登陆失败')
         if toThird.run(driver, '回归测试2', 'taxidCode000000002'):
             print('进账簿失败')
+        if (ret == 0):
+            ret = toSettleAccounts.runBack(driver)
+            if (ret != 0):
+                log.e('反结账失败', ret)
+                time.sleep(60)
+        if (ret == 0):
+            ret = certificateList.run(driver, config.caseCompanyName, config.caseTaxId, 2)
+            if (ret != 0):
+                log.e('批量凭证取消审核', ret)
+                time.sleep(60)
+        if (ret == 0):
+            ret = certificateList.run(driver, config.caseCompanyName, config.caseTaxId, 3)
+            if (ret != 0):
+                log.e('清空凭证失败', ret)
+                time.sleep(60)
+        if (ret == 0):
+            ret = kmqcfun.runInit(driver)
+            if (ret != 0):
+                log.e('清空新增科目失败', ret)
+                time.sleep(60)
+        if (ret == 0):
+            ret = contactsunitlist.runClear(driver)
+            if (ret != 0):
+                log.e('清空往来失败', ret)
+                time.sleep(60)
+        if (ret == 0):
+            ret = originCertificate.runDelete(driver)
+            if (ret != 0):
+                log.e('删除原始凭证失败', ret)
+                time.sleep(60)
+        if (ret == 0):
+            ret = toCertificateInput.run(driver)
+            if (ret != 0):
+                log.e('凭证录入失败', ret)
+                time.sleep(60)
+        if (ret == 0):
+            ret = addCertificate.run(driver)
+            if (ret != 0):
+                log.e('新增凭证失败', ret)
+                time.sleep(60)
+        if (ret == 0):
 
-        # ret = certificateList.run(driver,3)
-        # if (ret != 0):
-        #     time.sleep(60)
-        #     log.e('清空凭证失败', ret)
-
-        ret = toCertificateInput.run(driver)
-        if (ret != 0):
-            time.sleep(60)
-            log.e('凭证录入失败', ret)
-
-        ret = addCertificate.run(driver)
-        if (ret != 0):
-            time.sleep(60)
-            log.e('新增凭证失败', ret)
+            ret = initqmjz.run(driver)
+            if (ret != 0):
+                log.e('期末结转失败', ret)
+                time.sleep(60)
+        if (ret == 0):
+            ret = certificateList.run(driver, config.caseCompanyName, config.caseTaxId, 1)
+            if (ret != 0):
+                log.e('审核凭证失败', ret)
+                time.sleep(60)
+        if (ret == 0):
+            ret = toSettleAccounts.run(driver)
+            if (ret != 0):
+                log.e('结账失败', ret)
+                time.sleep(60)
+        if (ret == 0):
+            ret = apiBalanceSheetList.run(driver)
+            if (ret != 0):
+                log.e('余额表对比失败', ret)
+                time.sleep(60)
+        log.e('测试完成')
         time.sleep(5)
         driver.quit()  # 使用完, 记得关闭浏览器, 不然chromedriver.exe进程为一直在内存中.
-
-
