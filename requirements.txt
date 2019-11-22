@@ -1,0 +1,4 @@
+xlrd
+selenium
+pymysql
+requests
