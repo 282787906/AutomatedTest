@@ -104,6 +104,7 @@ dbPort = int
 dbUser = str
 dbPasswd =str
 dbPlatform =str
+dbLog =str
 
 HOST_SOURCE_PRE='pre'
 HOST_SOURCE_ON_LINE= 'online'
@@ -116,6 +117,7 @@ def set_host(host):
     global dbUser
     global dbPasswd
     global dbPlatform
+    global dbLog
     global hostSource
     if host==HOST_SOURCE_ON_LINE:
         hostSource= 'online'
@@ -126,6 +128,7 @@ def set_host(host):
         dbUser = 'csdb'
         dbPasswd = 'Pwd!2018@db'
         dbPlatform = 'cs_platform'
+        dbLog = 'cs-log'
     elif host==HOST_SOURCE_PRE:
 
         hostSource= 'pre'
@@ -136,6 +139,8 @@ def set_host(host):
         dbUser = 'precsdb'
         dbPasswd = 'Pwd2018db'
         dbPlatform = 'pre_cs_platform'
+
+        dbLog = 'pre-cs-log'
     else:
         log.w('未设置环境参数 ')
 
@@ -143,8 +148,8 @@ def set_host(host):
 
 
 
-WHILE_WAIT_SLEEP = 0.2
-ACTION_WAIT_SLEEP_SHORT = 0.5
+WHILE_WAIT_SLEEP = 0.1
+ACTION_WAIT_SLEEP_SHORT = 0.3
 ACTION_WAIT_SLEEP_LONG = 1
 LOAD_PAGE_TIMEOUT = 10
 FAIL_WAIT_SLEEP=20

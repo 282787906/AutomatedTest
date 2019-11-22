@@ -73,12 +73,11 @@ def runDelete(driver):
                 maxTimes = int(config.LOAD_PAGE_TIMEOUT / config.WHILE_WAIT_SLEEP)
                 while times < maxTimes:
                     time.sleep(config.ACTION_WAIT_SLEEP_LONG)
+                    btn = driver.switch_to.active_element
+                    if btn.tag_name == 'button' and btn.text == 'OK':
 
-                    if driver.find_element_by_class_name('bootbox-body').text == '确认删除吗?':
-                        btns= driver.find_elements_by_xpath("//div[@class = 'modal-footer']/button")
-                        if btns[3].text=='OK':
-                            btns[3].click()
-                            break
+                        btn.click()
+                        break
                     if times == maxTimes:
                         log.e("原始凭证-删除凭证等待确认超时")
                         return 1

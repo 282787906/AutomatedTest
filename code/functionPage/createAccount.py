@@ -178,7 +178,7 @@ def run(driver, accountSetInfo):
         return 1
 if __name__=="__main__":
     print('createAccount')
-    config.set_host(config.HOST_SOURCE_PRE)
+    config.set_host(config.HOST_SOURCE_ON_LINE)
     if (config.hostSource == None):
         log.e('未设置数据源')
     else:
@@ -195,7 +195,7 @@ if __name__=="__main__":
             driver.quit()
         else:
             accountSetInfo = AccountSetInfo('回归测试2', 'taxidCode000000002', 1, 2019, 8, 1, '物流行业科目体系', '默认组',
-                                            '伊文科技',
+                                            '长春测试中心（测试）',
                                             '通用公式')
             ret = run(driver, accountSetInfo)
             if (ret != 0):

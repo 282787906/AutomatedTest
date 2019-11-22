@@ -107,6 +107,7 @@ def run(driver):
 
         time.sleep(config.ACTION_WAIT_SLEEP_SHORT)
         driver.find_element_by_id('btn_xzpz_add_and_save').send_keys(Keys.ENTER)
+        time.sleep(config.ACTION_WAIT_SLEEP_SHORT)
         times = 0
         maxTimes = int(LOAD_PAGE_TIMEOUT / WHILE_WAIT_SLEEP)
         while (times < maxTimes):

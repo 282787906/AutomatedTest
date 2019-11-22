@@ -45,9 +45,10 @@ def mouseMove(_driver, x, y):
     offset_y = y - current_y
     config.current_y = y
 
-    # log.d('鼠标左键点击', x, y, offset_x, offset_y)
+    log.d('鼠标移动', x, y, offset_x, offset_y)
     ActionChains(_driver).move_by_offset(offset_x, offset_y).perform()  # 鼠标左键点击， 200为x坐标， 100为y坐标 多次使用时偏移累加
-
+    # ActionChains(_driver).release().perform()  # 鼠标左键点击， 200为x坐标， 100为y坐标 多次使用时偏移累加
+    # ActionChains(_driver).move_by_offset(x, y).click().perform()
 def mouseLeftClick(_driver, x, y):
     current_x=config.current_x
     offset_x = x - current_x
@@ -56,8 +57,11 @@ def mouseLeftClick(_driver, x, y):
     offset_y = y - current_y
     config.current_y = y
 
-    # log.d('鼠标左键点击', x, y, offset_x, offset_y)
-    ActionChains(_driver).move_by_offset(offset_x, offset_y).click().perform()  # 鼠标左键点击， 200为x坐标， 100为y坐标 多次使用时偏移累加
+    log.d('鼠标左键点击', x, y, offset_x, offset_y)
+    ActionChains(_driver).move_by_offset(offset_x, offset_y).click().perform()
+
+    # ActionChains(_driver).reset_actions().perform()  # 鼠标左键点击， 200为x坐标， 100为y坐标 多次使用时偏移累加
+    # ActionChains(_driver).move_by_offset(x, y).click().perform()
 
 
 def mouseLeftDoubleClick(_driver, x, y):
@@ -68,7 +72,7 @@ def mouseLeftDoubleClick(_driver, x, y):
     offset_y = y - current_y
     config.current_y = y
 
-    # log.d('鼠标左键双击', x, y, offset_x, offset_y)
+    log.d('鼠标左键双击', x, y, offset_x, offset_y)
     ActionChains(_driver).move_by_offset(offset_x,
                                          offset_y).double_click().perform()  # 鼠标左键点击， 200为x坐标， 100为y坐标 多次使用时偏移累加
 

@@ -25,8 +25,6 @@ if __name__ == "__main__":
         if (ret != 0):
             time.sleep(60)
             print('登陆失败')
-        if toThird.run(driver, config.caseCompanyName, config.caseTaxId):
-            print('进账簿失败')
         if (ret == 0):
             ret = toSettleAccounts.runBack(driver)
             if (ret != 0):
@@ -57,37 +55,7 @@ if __name__ == "__main__":
             if (ret != 0):
                 log.e('删除原始凭证失败', ret)
                 time.sleep(60)
-        if (ret == 0):
-            ret = toCertificateInput.run(driver)
-            if (ret != 0):
-                log.e('凭证录入失败', ret)
-                time.sleep(60)
-        if (ret == 0):
-            ret = addCertificate.run(driver)
-            if (ret != 0):
-                log.e('新增凭证失败', ret)
-                time.sleep(60)
-        if (ret == 0):
 
-            ret = initqmjz.run(driver)
-            if (ret != 0):
-                log.e('期末结转失败', ret)
-                time.sleep(60)
-        if (ret == 0):
-            ret = certificateList.run(driver, config.caseCompanyName, config.caseTaxId, 1)
-            if (ret != 0):
-                log.e('审核凭证失败', ret)
-                time.sleep(60)
-        if (ret == 0):
-            ret = toSettleAccounts.run(driver)
-            if (ret != 0):
-                log.e('结账失败', ret)
-                time.sleep(60)
-        if (ret == 0):
-            ret = apiBalanceSheetList.run(driver)
-            if (ret != 0):
-                log.e('余额表对比失败', ret)
-                time.sleep(60)
         log.e('测试完成')
         time.sleep(5)
         driver.quit()  # 使用完, 记得关闭浏览器, 不然chromedriver.exe进程为一直在内存中.

@@ -239,44 +239,43 @@ def getTemplateSubjectById(id):
 #         conn.close()
 
 
-# def connTest(dbName):
-#     try:
-#
-#         conn = pymysql.connect(host="192.168.1.10",
-#                                port=3307,
-#                                user="root",
-#                                passwd="d0608",
-#                                db=dbName,
-#                                charset='utf8')
-#     except:
-#         print('数据库连接异常:', traceback._context_message)
-#         traceback.print_exc()
-#         return
-#
-#     try:
-#         # 使用 cursor() 方法创建一个游标对象 cursor
-#         cursor = conn.cursor()
-#         # 使用 execute()  方法执行 SQL 查询
-#         sql = "SELECT f.id,f.tax_no,f.set_uid, f.path FROM file_management f WHERE f.file_status=1 AND (f.type=1 OR f.type=2)"
-#         cursor.execute(sql)
-#
-#         for row in cursor.fetchall():
-#             name = row[3].split("/")[len(row[3].split("/")) - 1]
-#
-#             model = OcrFile(-1, row[0], row[3], name, row[1], row[2], 1, 0)
-#
-#             print("model", model.fileName)
-#             return
-#         print("model", "select none")
-#
-#     except:
-#
-#         print('数据库查询异常:', traceback._context_message)
-#         traceback.print_exc()
-#         return
-#     finally:
-#         # 关闭数据库连接
-#         conn.close()
+def getThirdLog(id):
+
+    try:
+        conn = pymysql.connect(host=config.dbHost,
+                               port=config.dbPort,
+                               user=config.dbUser,
+                               passwd=config.dbPasswd,
+                               db=config.dbLog,
+                               charset='utf8')
+    except:
+
+        print('数据库连接异常:', traceback._context_message)
+        traceback.print_exc()
+        return -1, None, None,  '数据库连接异常 '
+
+    try:
+        # 使用 cursor() 方法创建一个游标对象 cursor
+        cursor = conn.cursor(pymysql.cursors.DictCursor)
+        # 使用 execute()  方法执行 SQL 查询
+        sql = "SELECT * FROM  cs_third_log  l WHERE l.id="+str(id)
+        cursor.execute(sql)
+        for row in cursor.fetchall():
+
+            # print('数据库查:',row["id"])
+            # print('数据库查:',row["af"])
+            # print('数据库查:',row["bf"])
+            af=row["af"]
+            bf=row["bf"]
+            return 0, str(af, encoding = "utf8"),str(bf, encoding = "utf8"),None
+    except:
+        traceback.print_exc()
+
+        print('数据库查询异常:', traceback._context_message)
+        return -2, None,None,  '数据库查询异常'
+    finally:
+        # 关闭数据库连接
+        conn.close()
 
 
 def updateTest():
