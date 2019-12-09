@@ -6,7 +6,7 @@ from selenium.webdriver.common.keys import Keys
 
 from conf import config
 from conf.config import LOAD_PAGE_TIMEOUT, WHILE_WAIT_SLEEP, ACTION_WAIT_SLEEP_LONG
-from functionPage import login, toThird, certificateList
+from functionPage import login, toThird, certificateList, loginNew
 from tools import log
 from tools.commonSelenium import  toPage, mouseLeftDoubleClick, clearElement
 from tools.excelTools import read_documentAdd
@@ -132,7 +132,7 @@ if __name__=="__main__":
         driver = webdriver.Chrome(options=option)
         driver.set_window_size(config.window_size_w, config.window_size_h)
         driver.implicitly_wait(5)
-        ret = login.run(driver)
+        ret = loginNew.run(driver)
         if (ret != 0):
 
             print('登陆失败')

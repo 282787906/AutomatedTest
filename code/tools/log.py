@@ -77,8 +77,9 @@ def exception(*strs):
             resetColor()
         else:
             print('无异常信息')
-    msg = traceback.format_exception(et, ev, tb)
-    for m in msg:
+    msgs = traceback.format_exception(et, ev, tb)
+    msg=''
+    for m in msgs:
         # e(m.strip('\n'))
         if config.runWith==config.RUN_WITH_PYCHARM:
             print('\033[31m' + m.strip('\n') + '\033[0m')
@@ -87,8 +88,9 @@ def exception(*strs):
             sys.stdout.write(m.strip('\n') + '\n')
             resetColor()
         else:
-            print(m.strip('\n'))
-
+            print(m.strip('\n')+ '\n')
+        msg =msg+ m.strip('\n')+ '\n'
+    return msg
 
 
 def e(*strs):

@@ -4,7 +4,7 @@ import requests
 from selenium import webdriver
 
 from conf import config
-from functionPage import login, toThird
+from functionPage import login, toThird, loginNew
 from tools import log, commonSelenium
 
 
@@ -102,7 +102,7 @@ if __name__ == "__main__":
     driver = webdriver.Chrome(options=option)
     driver.set_window_size(config.window_size_w, config.window_size_h)
     driver.implicitly_wait(5)
-    ret = login.run(driver)
+    ret = loginNew.run(driver)
     if (ret != 0):
 
         print('登陆失败')

@@ -9,7 +9,6 @@ from selenium.webdriver.support.wait import WebDriverWait
 
 from conf import config
 from functionPage import login, toThird
-from module import Kemuyueb
 from module.Kemuyueb import dict2Kemuyueb
 from tools import log, commonSelenium
 
@@ -35,7 +34,7 @@ def run(driver):
                     kemuyueb_dicts[km.accountCode] = km
             else:
 
-                log.e('API 余额表获取失败：', response.status_code)
+                log.e('API 余额表获取失败：', response.text)
                 return 1
         else:
             log.e('API 余额表获取失败HTTP：', response.status_code)

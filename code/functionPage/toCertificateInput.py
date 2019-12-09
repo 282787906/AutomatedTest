@@ -10,7 +10,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 from conf import config
 from conf.config import ACTION_WAIT_SLEEP_LONG, LOAD_PAGE_TIMEOUT, WHILE_WAIT_SLEEP, ACTION_WAIT_SLEEP_SHORT
 from functionOther import csInfoFileUpload
-from functionPage import login
+from functionPage import login, loginNew
 
 from tools import log, commonSelenium
 from tools.commonBusiness import getFeatureCdByCode
@@ -362,7 +362,7 @@ def run(driver):
                         lambda x: x.find_element_by_id("gritter-notice-wrapper"))
                     # log.w(alert.text)
                     if '保存成功' in alert.text:
-                        log.i(documentIndex, '录入凭证成功' )
+                        log.i(documentIndex, '录入凭证成功')
                         break
 
                 except TimeoutException:
@@ -404,7 +404,7 @@ if __name__ == "__main__":
         driver = webdriver.Chrome(options=option)
         driver.set_window_size(config.window_size_w, config.window_size_h)
         driver.implicitly_wait(5)
-        ret = login.run(driver)
+        ret = loginNew.run(driver)
         if (ret != 0):
 
             print('登陆失败')

@@ -7,9 +7,9 @@ from tools import log
 
 
 def run(taxId):
-    log.d('cs-info 查询企业')
+    log.d('cs-info 查询企业',config.domain_cs_info + '/cs-info/customer/findByTaxNo')
     kv = {'taxNo': taxId}
-    response = requests.get(config.domain + '/cs-info/customer/findByTaxNo', params=kv, allow_redirects=False)
+    response = requests.get(config.domain_cs_info + '/cs-info/customer/findByTaxNo', params=kv, allow_redirects=False)
     response.encoding = 'utf-8'
     if response.status_code == 200:
         ret = json.loads(response.text)
@@ -34,13 +34,12 @@ def run(taxId):
 
 def runWithDate(taxId, year, month):
     log.d('cs-info 带年月参数查询企业')
-    kv = {'taxNo': taxId, 'year': year, 'month': month}
-    response = requests.get(config.domain + '/cs-info/customer/findByTaxNo', params=kv, allow_redirects=False)
+    kv = {'taxNo': taxId, 'year':int( year), 'month': int(month)}
+    response = requests.get(config.domain_cs_info + '/cs-info/customer/findByTaxNo', params=kv, allow_redirects=False)
     response.encoding = 'utf-8'
     if response.status_code == 200:
         ret = json.loads(response.text)
         if ret['code'] == '200':
-            log.i('带年月参数查询成功')
             year = ret['data']['currHjyYear']
             month = ret['data']['currHjyMonth']
             id = ret['data']['id']
@@ -49,6 +48,7 @@ def runWithDate(taxId, year, month):
             invoiceNo = ret['data']['invoiceNo']
             taxNo = ret['data']['taxNo']
             company = ret['data']['company']
+            log.i('带年月参数查询成功',company,taxNo, id, uid, accountSystem, year, month,  invoiceNo)
             return 0,company,taxNo, id, uid, accountSystem, year, month,  invoiceNo
         else:
 
@@ -64,4 +64,4 @@ if __name__ == "__main__":
     if (config.hostSource == None):
         log.e('未设置数据源')
     else:
-        run('91310116761150572C')
+        run(config.caseTaxId)

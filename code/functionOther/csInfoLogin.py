@@ -9,7 +9,7 @@ from tools import log
 def run(userName ,pwd):
     log.d('cs-info 登录')
     kv = {'userName': userName, 'pwd': pwd}
-    response = requests.get(config.domain + '/cs-info/user/login', params=kv, allow_redirects=False)
+    response = requests.get(config.domain_cs_info + '/cs-info/user/login', params=kv, allow_redirects=False)
     response.encoding = 'utf-8'
     if response.status_code == 200:
         ret = json.loads(response.text)

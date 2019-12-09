@@ -8,7 +8,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.common.exceptions import TimeoutException
 from conf import config
-from functionPage import login, toThird
+from functionPage import login, toThird, loginNew
 from tools import log, commonSelenium
 
 
@@ -153,7 +153,7 @@ if __name__ == "__main__":
         driver = webdriver.Chrome(options=option)
         driver.set_window_size(config.window_size_w, config.window_size_h)
         driver.implicitly_wait(5)
-        ret = login.run(driver)
+        ret = loginNew.run(driver)
         if (ret != 0):
             print('登陆失败')
             time.sleep(config.FAIL_WAIT_SLEEP)

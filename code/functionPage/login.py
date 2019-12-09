@@ -10,10 +10,10 @@ from tools.commonSelenium import toPage
 from tools import log
 
 def run(driver ):
-    log.d('登录')
+    log.d('CRM登录',config.domain + "/#/login")
     try:
         if toPage(driver, config.domain + "/#/login"):
-            log.e('登录失败-进入登录页超时')
+            log.e('CRM登录失败-进入CRM登录页超时')
             return 1
         driver.find_element_by_name('username').send_keys(config.userName)
         driver.find_element_by_name('password').send_keys(config.userPwd)
@@ -25,16 +25,16 @@ def run(driver ):
         while times < maxTimes:
             if driver.current_url == config.domain + "/#/dashboard":
                 time.sleep(ACTION_WAIT_SLEEP_LONG)
-                log.i('登录成功')
+                log.i('CRM登录成功')
                 return 0
             times = times + 1
             time.sleep(WHILE_WAIT_SLEEP)
-        log.e('登录失败-登录超时')
+        log.e('CRM登录失败-登录超时')
         return 1
     except BaseException as e:
         r = requests.get(driver.current_url, allow_redirects=False)
 
-        log.exception('登录异常',r.status_code )
+        log.exception('CRM登录异常',r.status_code )
         return 1
 if __name__=="__main__":
     print('main')

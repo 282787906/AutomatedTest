@@ -5,7 +5,7 @@ from selenium import webdriver
 
 from conf import config
 from conf.config import window_size_w, window_size_h
-from functionOther import apiBalanceSheetList
+from functionOther import apiBalanceList
 from functionPage import login, toCertificateInput, addCertificate, certificateList, toThird, initqmjz, \
     toSettleAccounts, originCertificate, kmqcfun, contactsunitlist
 from tools import log, commonSelenium
@@ -40,7 +40,7 @@ if __name__ == "__main__":
                 log.e('结账失败', ret)
                 time.sleep(60)
         if (ret == 0):
-            ret = apiBalanceSheetList.run(driver)
+            ret = apiBalanceList.run(driver)
             if (ret != 0):
                 log.e('余额表对比失败', ret)
                 time.sleep(60)

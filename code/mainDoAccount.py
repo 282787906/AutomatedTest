@@ -5,7 +5,7 @@ from selenium import webdriver
 
 from conf import config
 from conf.config import window_size_w, window_size_h
-from functionOther import apiBalanceSheetList
+from functionOther import apiBalanceList
 from functionPage import login, toCertificateInput, addCertificate, certificateList, toThird, initqmjz, \
     toSettleAccounts, originCertificate, kmqcfun, contactsunitlist
 from tools import log, commonSelenium

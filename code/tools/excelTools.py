@@ -6,6 +6,7 @@ from datetime import date, datetime
 from conf import config
 from module.DocumentDetailAdd import DocumentDetailAdd
 from module.DocumentDetailInput import DocumentDetailInput
+from module.SubsidiaryLedger import SubsidiaryLedger
 
 from tools import log
 
@@ -71,17 +72,13 @@ def read_CompanyInfo():
     else:
         user_name = sheet1.cell_value(1, user_name_index)
 
-
     ctype = sheet1.cell(1, user_pwd_index).ctype  # 表格的数据类型
     if ctype == 2 and sheet1.cell_value(1, user_pwd_index) % 1 == 0:  # 如果是整形
         user_pwd = int(sheet1.cell_value(1, user_pwd_index))
     else:
         user_pwd = sheet1.cell_value(1, user_pwd_index)
 
-
     host_type = sheet1.cell_value(1, host_type_index)
-
-
 
     config.set_caseCompanyName(company_name)
     config.set_caseTaxId(tax_id)
@@ -91,6 +88,7 @@ def read_CompanyInfo():
     config.set_userName(user_name)
     config.set_userPwd(user_pwd)
     return 0
+
 
 def read_documentAdd():
     log.d('读取凭证excel文件')
@@ -301,7 +299,6 @@ def read_documentInput():
         else:
             account_code = sheet1.cell_value(index, account_code_index)
 
-
         account_name = sheet1.cell_value(index, account_name_index)
         ctype = sheet1.cell(index, account_feature_cd_index).ctype  # 表格的数据类型
         if ctype == 2 and sheet1.cell_value(index, account_feature_cd_index) % 1 == 0:  # 如果是整形
@@ -334,10 +331,10 @@ def read_documentInput():
 
             documentDetails.append(
                 DocumentDetailInput(document_id, tax_no, year, month, type, TEMPLATED_ID, TEMPLATED_NAME, summary,
-                                           account_code,
-                                           account_name,
-                                           account_feature_cd, credit_amount, debit_amount,
-                                           partner_code, partner_name))
+                                    account_code,
+                                    account_name,
+                                    account_feature_cd, credit_amount, debit_amount,
+                                    partner_code, partner_name))
             # log.d('添加明细1', 'lastDocument_id',lastDocument_id,'document_id',document_id,len(documentDetails))
         else:
             documents.append(documentDetails)
@@ -362,13 +359,60 @@ def read_documentInput():
     return 0, documents, None
 
 
+def read_subsidiaryLedgerList():
+    log.d('明细账excel文件')
+    filename = str
+    dir_or_files = os.listdir(config.FILE_DOWNLOAD)
+    for dir_file in dir_or_files:
+        filename =config.FILE_DOWNLOAD+"\\"+ dir_file
+    log.i(dir_file)
+    wb = xlrd.open_workbook(filename=filename)  # 打开文件
+
+    sheet1 = wb.sheet_by_name('明细账')  # 通过索引获取表格
+    lastKmCode  = ''
+    lists =dict()
+    subsidiaryLedgers=[]
+    for index in range(sheet1.nrows):
+        if (index < 3):
+            continue
+        kmCode = sheet1.cell_value(index, 0).split('_')[0]
+        kmName = sheet1.cell_value(index, 0).split('_')[1]
+        date = sheet1.cell_value(index, 1)
+        voucherNo = sheet1.cell_value(index, 2)
+        summary = sheet1.cell_value(index, 3)
+        debitAmount = sheet1.cell_value(index, 4)
+        creditAmount = sheet1.cell_value(index, 5)
+        direction = sheet1.cell_value(index, 6)
+        qmYue = sheet1.cell_value(index, 7)
+
+        sl = SubsidiaryLedger(kmCode, kmName, date, voucherNo, summary, debitAmount, creditAmount, direction, qmYue)
+        # subsidiaryLedgers.append(sl)
+        log.d(kmCode,kmName,date, voucherNo, summary, debitAmount,creditAmount,direction,qmYue)
+        if (lastKmCode == ''):
+            lastKmCode = kmCode
+            # log.d('第一次' )
+        if (lastKmCode == kmCode):
+            subsidiaryLedgers.append(sl)
+        else:
+            lists[lastKmCode]=subsidiaryLedgers
+            subsidiaryLedgers = []
+            subsidiaryLedgers.append(sl)
+        if (index == sheet1.nrows - 1):
+            lists[kmCode]=subsidiaryLedgers
+            # log.d('最后一次', len(lists))
+            subsidiaryLedgers = []
+        lastKmCode = kmCode
+    return 0, lists
+
+
 if __name__ == "__main__":
     # read_excel()
-    file = 'C:\\Users\\Liqg\\Desktop\\book1.xlsx'
-    dir = os.path.dirname(__file__)
-    parent_path = os.path.dirname(dir)
-    case_dir = parent_path + '/testCases/csae_document.xlsx'  # 根据项目所在路径，找到用例所在的相对项目的路径
-    ret, documents, msg = read_documentInput( )
-    read_CompanyInfo()
-    log.i(config.caseCompanyName)
-    log.d(documents)
+    # file = 'C:\\Users\\Liqg\\Desktop\\book1.xlsx'
+    # dir = os.path.dirname(__file__)
+    # parent_path = os.path.dirname(dir)
+    # case_dir = parent_path + '/testCases/csae_document.xlsx'  # 根据项目所在路径，找到用例所在的相对项目的路径
+    # ret, documents, msg = read_documentInput( )
+    # read_CompanyInfo()
+    # log.i(config.caseCompanyName)
+    # log.d(documents)
+    read_subsidiaryLedgerList()

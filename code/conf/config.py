@@ -99,6 +99,7 @@ def set_runWith(value):
 
 
 domain = str
+domain_cs_info=str
 dbHost = str
 dbPort = int
 dbUser = str
@@ -108,10 +109,11 @@ dbLog =str
 
 HOST_SOURCE_PRE='pre'
 HOST_SOURCE_ON_LINE= 'online'
-
+FILE_DOWNLOAD='d:\\seleniumTemp\\download'
 hostSource = None
 def set_host(host):
     global domain
+    global domain_cs_info
     global dbHost
     global dbPort
     global dbUser
@@ -133,7 +135,9 @@ def set_host(host):
 
         hostSource= 'pre'
         log.i('设置环境参数-预发布环境')
-        domain = 'http://pre.sstax.cn:81/'
+        # domain = 'http://pre.sstax.cn:81/'
+        domain = 'http://learn.sstax.cn:81/'
+        domain_cs_info = 'http://learn.sstax.cn:81/'
         dbHost = '222.73.99.99'
         dbPort = 3031
         dbUser = 'precsdb'

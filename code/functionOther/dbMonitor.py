@@ -3,7 +3,10 @@ import sys
 from datetime import datetime
 import time
 
+from selenium import webdriver
+
 from conf import config
+from functionPage import login, loginNew, toThird
 from module.connConfig import connConfig
 from tools import log, mySqlHelper, mail
 
@@ -43,7 +46,35 @@ def checkConn(rate):
 
 
     return retCode, warnMsg
-def run():
+
+def pageStatus():
+    option = webdriver.ChromeOptions()
+    option.add_argument('disable-infobars')
+    # 不打开浏览器
+    option.add_argument('--headless')
+    option.add_argument('--disable-gpu')
+    driver = webdriver.Chrome(options=option)
+    driver.implicitly_wait(10)
+    ret = 0
+    msgError=''
+    if (login.run(driver)):
+        log.e('登陆失败')
+        ret=1
+        msgError = msgError + "crm登陆失败\n"
+    if toThird.run(driver, config.caseCompanyName, config.caseTaxId):
+        log.e('进账簿失败')
+        ret=1
+
+        msgError = msgError + "进账簿失败\n"
+
+    if loginNew.run(driver):
+        log.e('第三方跳转登陆失败')
+
+        ret=1
+        msgError = msgError + "第三方跳转登录失败\n"
+
+    return  ret,msgError
+def  run():
     CONN_RATE_THRESHOLD = 50               # 数据库连接使用率（%）50
     CREATE_PZ_WAIT_COUNT_THRESHOLD = 20     # 自动创建凭证积压时间（分钟）20
     HE_HE_WAIT_TIME_THRESHOLD = 120          # 合合识别积压时间（分钟）120
@@ -98,17 +129,23 @@ def run():
                 # if retCode != 200:
                 #     log.w('status_code:', retCode, 'msg:', msg)
                 #     mailMsg = mailMsg + "third调用 code:" + str(retCode) + "  " + msg + '\n'
+                retCode ,msg=pageStatus()
+                if retCode != 0:
+                    # log.w(warnMsg)
+                    mailMsg = mailMsg + '页面调用出错 :' + msg + '\n'
+
                 if len(mailMsg) > 0:
                     mail.send("财税警告", mailMsg)
                     log.e("财税警告", mailMsg)
                 else:
                     log.i('状态正常\n')
-            except BaseException  as e:
-                exc_type, exc_obj, exc_tb = sys.exc_info()
-                fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-                print(exc_type, fname, exc_tb.tb_lineno)
-                log.e('状态监控异常', e.args)
+            except  :
+                # exc_type, exc_obj, exc_tb = sys.exc_info()
+                # fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+                # print(exc_type, fname, exc_tb.tb_lineno)
+                msg=log.exception('状态监控异常' )
 
+                mail.send("财税警告_状态监控异常", msg)
         time.sleep(SLEEP)
 
 if __name__ == "__main__":

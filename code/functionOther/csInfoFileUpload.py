@@ -25,6 +25,7 @@ def run(taxNo, type, count):
     if retLogin == 0:
         retFindByTaxNo, company, taxNo, id, uid, accountSystem, year, month, invoiceNo = csInfoFindByTaxNo.run(
             taxNo)
+        log.d(company, taxNo, id, uid, accountSystem, year, month, invoiceNo)
         if retFindByTaxNo == 0:
             kv = {
                 'id': id,
@@ -32,8 +33,8 @@ def run(taxNo, type, count):
                 'userId': userId,
                 'company': company,
                 'taxNo': taxNo,
-                'year': year,
-                'month': month,
+                'year': int(year),
+                'month': int(month),
                 'type': type,
                 'invoiceNo': invoiceNo,
                 'origin': '1',
@@ -47,7 +48,7 @@ def run(taxNo, type, count):
                               open(case_dir, 'rb'),  # 已二进制的形式打开文件
                               'application/msword')  # 上传文件的MIME文件类型，这个必须要有
                 }  # 上传的文件
-                response = requests.post(config.domain + '/cs-info/file/upload', params=kv, files=files,
+                response = requests.post(config.domain_cs_info + '/cs-info/file/upload', params=kv, files=files,
                                          allow_redirects=False)
                 response.encoding = 'utf-8'
                 if response.status_code == 200:
@@ -70,8 +71,8 @@ def run(taxNo, type, count):
 
 if __name__ == "__main__":
     print('DbMonitor', str(int(time.time())))
-    config.set_host(config.HOST_SOURCE_PRE)
+    config.set_host(config.HOST_SOURCE_ON_LINE)
     if (config.hostSource == None):
         log.e('未设置数据源')
     else:
-        run(config.caseTaxId, 3, 2)
+        run(config.caseTaxId, 3, 1)
