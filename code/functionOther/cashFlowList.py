@@ -24,7 +24,8 @@ def run(driver):
                   'year': config.caseCurrentAccountYear,
                   'month': config.caseCurrentAccountMonth}
 
-        response = requests.get(config.domain + '/api/report/cashflow', params=params, allow_redirects=False)
+        log.i('API 现金流量表获取',config.domain_api)
+        response = requests.get(config.domain_api + '/api/report/cashflow', params=params, allow_redirects=False)
         response.encoding = 'utf-8'
         if response.status_code == 200:
             ret = json.loads(response.text)
@@ -72,8 +73,8 @@ def run(driver):
                     log.e( '本年累计额', dicts['r'+line+'bnlje'], '本月金额', dicts['r'+line+'byje'])
 
                     return 1
-                else:
-                    log.d('行次',line,'本年累计额', bnlje, '本月金额', bnlje )
+                # else:
+                #     log.d('行次',line,'本年累计额', bnlje, '本月金额', bnlje )
         if dicts['r22bnlje'] != dicts['r22byje'] :
             log.e('现金流量表不平衡')
 
@@ -90,7 +91,7 @@ def run(driver):
 
 if __name__ == "__main__":
     print('main')
-    config.set_host(config.HOST_SOURCE_PRE)
+    # config.set_host(config.HOST_SOURCE_PRE)
     if (config.hostSource == None):
         log.e('未设置数据源')
     else:

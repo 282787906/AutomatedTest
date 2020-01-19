@@ -178,7 +178,7 @@ def run(driver, accountSetInfo):
         return 1
 if __name__=="__main__":
     print('createAccount')
-    config.set_host(config.HOST_SOURCE_ON_LINE)
+    # config.set_host(config.HOST_SOURCE_ON_LINE)
     if (config.hostSource == None):
         log.e('未设置数据源')
     else:

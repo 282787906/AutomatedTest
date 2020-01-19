@@ -16,33 +16,14 @@ from tools import log, commonSelenium
 
 
 def run(driver):
-    log.d('利润表')
+    log.d('信息采集')
     dicts=dict
     try:
-        params = {'origin': 'zidh',
-                  'taxNo': config.caseTaxId,
-                  'year': config.caseCurrentAccountYear,
-                  'month': config.caseCurrentAccountMonth}
-
-        log.i('API 利润表获取',config.domain_api)
-        response = requests.get(config.domain_api + '/api/report/profit', params=params, allow_redirects=False)
-        response.encoding = 'utf-8'
-        if response.status_code == 200:
-            ret = json.loads(response.text)
-            if str(ret['code']) == '200':
-                dicts = ret['data']
-            else:
-
-                log.e('API 利润表获取失败：', response.text)
-                return 1
-        else:
-            log.e('API 利润表获取失败HTTP：', response.status_code)
-            return 1
 
         if toThird.run(driver, config.caseCompanyName, config.caseTaxId):
             time.sleep(config.FAIL_WAIT_SLEEP)
             return 1
-        if commonSelenium.toPage(driver, config.domain + "/cs-third/cer/profit/profitList"):
+        if commonSelenium.toPage(driver, config.domain + "/cs-third/fil/fileManagement/fileManagementList"):
             return 1
 
         driver.find_element_by_id('currentDate').click()
@@ -63,29 +44,15 @@ def run(driver):
                 continue
             tdsSum = rows[i].find_elements_by_tag_name("td")
              
-            if tdsSum[1].text!= '' and tdsSum[1].text!= '25':
+            if tdsSum[1].text!= '' and tdsSum[1].text!= '11':
                 line=tdsSum[1].text
-                bnlje=tdsSum[2].text.replace(',','')
-                byje=tdsSum[3].text.replace(',','')
-                if bnlje=='':
-                    bnlje='0.00'
-                if byje=='':
-                    byje='0.00'
 
-                if dicts['r' + line + 'bnlje'] != bnlje or dicts['r' + line + 'byje'] != byje:
-                    log.e('比较失败——行次', line, '本年累计额', bnlje, '本月金额', byje)
-                    log.e('本年累计额', dicts['r' + line + 'bnlje'], '本月金额', dicts['r' + line + 'byje'])
-
-                    return 1
-                # else:
-                #     log.d('行次', line, '本年累计额', bnlje, '本月金额', bnlje)
-
-        log.i('利润表页面接口对比通过')
+        log.i('信息采集页面接口对比通过')
         return 0
     except:
 
         r = requests.get(driver.current_url, allow_redirects=False)
-        log.exception('利润表', r.status_code)
+        log.exception('信息采集', r.status_code)
 
         return 1
 

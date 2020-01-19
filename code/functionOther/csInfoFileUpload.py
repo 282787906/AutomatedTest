@@ -19,8 +19,8 @@ def run(taxNo, type, count):
     :return:
     '''
     log.d('cs-info 文件上传')
-    userName = '615891768@qq.com'
-    pwd = '12345678',
+    userName = 'lxhw'
+    pwd = 'lxhw_013',
     retLogin, userId = csInfoLogin.run(userName, pwd)
     if retLogin == 0:
         retFindByTaxNo, company, taxNo, id, uid, accountSystem, year, month, invoiceNo = csInfoFindByTaxNo.run(
@@ -71,8 +71,8 @@ def run(taxNo, type, count):
 
 if __name__ == "__main__":
     print('DbMonitor', str(int(time.time())))
-    config.set_host(config.HOST_SOURCE_ON_LINE)
+    # config.set_host(config.HOST_SOURCE_PRE)
     if (config.hostSource == None):
         log.e('未设置数据源')
     else:
-        run(config.caseTaxId, 3, 1)
+        run(config.caseTaxId, 2, 1)

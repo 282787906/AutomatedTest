@@ -11,7 +11,7 @@ from tools.commonSelenium import toPage
 from tools import log
 
 def run(driver ):
-    log.d('第三方跳转登录', config.caseCompanyName+","+config.caseTaxId+","+config.userName)
+    log.d('第三方跳转登录',config.domain, config.caseCompanyName+","+config.caseTaxId+","+config.userName)
     sso=''
     try:
         params = {"params": config.caseCompanyName+","+config.caseTaxId+","+config.userName }
@@ -29,7 +29,10 @@ def run(driver ):
 
         else:
             log.e('加密请求失败：', response.status_code)
+    except BaseException as e:
 
+        log.exception('获取sso异常' )
+    try:
         if len(sso)>0:
             driver.get(config.domain + "/cs-third/ignore/simulatedLogin?sso="+sso)
         else:
@@ -59,7 +62,7 @@ def run(driver ):
         return 1
 if __name__=="__main__":
     print('main')
-    config.set_host(config.HOST_SOURCE_PRE)
+    # config.set_host(config.HOST_SOURCE_PRE)
     if (config.hostSource == None):
         log.e('未设置数据源')
     else:

@@ -7,7 +7,7 @@ from selenium.webdriver import ActionChains
 from selenium.webdriver.support.wait import WebDriverWait
 
 from conf import config
-from functionPage import login, toThird
+from functionPage import login, toThird, loginNew
 from tools import log, commonSelenium
 
 
@@ -79,11 +79,12 @@ def runBack(driver):
             return 1
         if commonSelenium.toPage(driver, config.domain + "/cs-third/st/settle/toSettleAccounts"):
             return 1
-        lastSettleMonth = driver.find_element_by_class_name('marked_words').text
+        lastSettleDate = driver.find_element_by_class_name('marked_words').text
 
-        if lastSettleMonth == '上次结账: 无数据':
-            log.i(lastSettleMonth, '测试会计月:',config.caseCurrentAccountMonth)
+        if lastSettleDate == '上次结账: 无数据':
+            log.i(lastSettleDate, '测试会计月:',config.caseCurrentAccountMonth)
             return 0
+        lastSettleDate=lastSettleDate.replace('上次结账至:','')
         driver.find_element_by_id('dateTime').click()
         time.sleep(config.ACTION_WAIT_SLEEP_LONG)
         # years = document[0].year - int(driver.find_elements_by_class_name('datepicker-switch')[1].text)
@@ -97,9 +98,10 @@ def runBack(driver):
         #         ActionChains(driver).move_to_element(driver.find_elements_by_class_name('next')[1]).click().perform()
         #         time.sleep(ACTION_WAIT_SLEEP_SHORT)
 
-        lastSettleMonth = int(lastSettleMonth.split('-')[1])
+        lastSettleYear = int(lastSettleDate.split('-')[0])
+        lastSettleMonth = int(lastSettleDate.split('-')[1])
         months = driver.find_elements_by_class_name('month')
-        if config.caseCurrentAccountMonth <= lastSettleMonth:
+        if config.caseCurrentAccountYear*100000+config.caseCurrentAccountMonth<=lastSettleYear*100000+ lastSettleMonth:
 
             for month in months:
                 if str(lastSettleMonth) + '月' in month.text:
@@ -116,7 +118,7 @@ def runBack(driver):
                             alert = driver.find_element_by_class_name('bootbox-body')
 
                             if alert.text == '反结账成功':
-                                log.i("反结账成功", str(lastSettleMonth), '月')
+                                log.i("反结账成功", str(lastSettleDate), '月')
                                 btns = driver.find_elements_by_class_name('btn-primary')
                                 for btn in btns:
                                     if btn.text == 'OK':
@@ -131,7 +133,7 @@ def runBack(driver):
                             log.e( '反结账月份选择后等待超时' )
                             return 1
         else:
-            log.w(lastSettleMonth, "反结账")
+            log.w(lastSettleDate, "反结账")
             return 0
 
         return 1
@@ -146,7 +148,7 @@ def runBack(driver):
 
 if __name__ == "__main__":
     print('main')
-    config.set_host(config.HOST_SOURCE_PRE)
+    # config.set_host(config.HOST_SOURCE_PRE)
     if (config.hostSource == None):
         log.e('未设置数据源')
     else:
@@ -155,7 +157,7 @@ if __name__ == "__main__":
         driver = webdriver.Chrome(options=option)
         driver.set_window_size(config.window_size_w, config.window_size_h)
         driver.implicitly_wait(5)
-        ret = login.run(driver)
+        ret = loginNew.run(driver)
         if (ret != 0):
             print('登陆失败')
             time.sleep(config.FAIL_WAIT_SLEEP)

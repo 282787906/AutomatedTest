@@ -60,7 +60,7 @@ def runWithDate(taxId, year, month):
 
 
 if __name__ == "__main__":
-    config.set_host(config.HOST_SOURCE_PRE)
+    # config.set_host(config.HOST_SOURCE_PRE)
     if (config.hostSource == None):
         log.e('未设置数据源')
     else:

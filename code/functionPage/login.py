@@ -38,7 +38,7 @@ def run(driver ):
         return 1
 if __name__=="__main__":
     print('main')
-    config.set_host(config.HOST_SOURCE_PRE)
+    # config.set_host(config.HOST_SOURCE_PRE)
     if (config.hostSource == None):
         log.e('未设置数据源')
     else:

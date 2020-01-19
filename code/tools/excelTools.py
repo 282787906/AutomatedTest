@@ -1,13 +1,12 @@
 import os
 
 import xlrd
-from datetime import date, datetime
 
 from conf import config
 from module.DocumentDetailAdd import DocumentDetailAdd
 from module.DocumentDetailInput import DocumentDetailInput
 from module.SubsidiaryLedger import SubsidiaryLedger
-
+from module.Kemuyueb import Kemuyueb
 from tools import log
 
 
@@ -358,20 +357,90 @@ def read_documentInput():
     log.d('读取凭证excel文件完成，凭证数量：', len(documents))
     return 0, documents, None
 
+def read_balanceSheetList():
+    log.d('资产负债表excel文件')
+    filename = str
+    dir_or_files = os.listdir(config.FILE_DOWNLOAD)
+    if len(dir_or_files)==0:
+        log.d(config.FILE_DOWNLOAD,'文件夹为空')
+        return 1,None
+    for dir_file in dir_or_files:
+        filename = config.FILE_DOWNLOAD + "\\" + dir_file
+    # log.i(filename)
+    wb = xlrd.open_workbook(filename=filename)  # 打开文件
+
+    sheet1 = wb.sheet_by_name('资产负债表')  # 通过索引获取表格
+    lists = dict()
+    for index in range(sheet1.nrows):
+        if (index < 3):
+            continue
+
+        if sheet1.cell_value(index, 1) != '' and sheet1.cell_value(index, 1) != '11':
+            line =str(int(sheet1.cell_value(index, 1)))
+            qm = sheet1.cell_value(index, 2)
+            nc = sheet1.cell_value(index, 3)
+
+            lists['r' + line + 'qm'] = qm if qm!='0' else'0.00'
+            lists['r' + line + 'nc'] = nc  if nc!='0' else'0.00'
+        if sheet1.cell_value(index, 5) != '':
+            line = str(int(sheet1.cell_value(index, 5)))
+            qm = sheet1.cell_value(index,6)
+            nc = sheet1.cell_value(index, 7)
+
+            lists['r' + line + 'qm'] = qm if qm!='0' else'0.00'
+            lists['r' + line + 'nc'] = nc if nc!='0' else'0.00'
+
+    return 0, lists
+def read_balanceList():
+    log.d('余额表excel文件')
+    filename = str
+    dir_or_files = os.listdir(config.FILE_DOWNLOAD)
+    if len(dir_or_files)==0:
+        log.d(config.FILE_DOWNLOAD,'文件夹为空')
+        return 1,None
+    for dir_file in dir_or_files:
+        filename = config.FILE_DOWNLOAD + "\\" + dir_file
+    log.i(filename)
+    wb = xlrd.open_workbook(filename=filename)  # 打开文件
+
+    sheet1 = wb.sheet_by_name('余额表')  # 通过索引获取表格
+    lists = dict()
+    for index in range(sheet1.nrows):
+        if (index < 5):
+            continue
+        accountCode = sheet1.cell_value(index, 0)
+        accountName = sheet1.cell_value(index, 1)
+        beginningBalanceDebit = round(sheet1.cell_value(index, 2))
+        beginningBalanceCrebit = round(sheet1.cell_value(index, 3))
+        currentAmountDebit = round(sheet1.cell_value(index, 4))
+        currentAmountCrebit = round(sheet1.cell_value(index, 5))
+        endingBalanceDebit = round(sheet1.cell_value(index, 6))
+        endingBalanceCrebit = round(sheet1.cell_value(index, 7))
+        if index == sheet1.nrows - 1:
+            lists['sum'] = Kemuyueb('sum', accountName, beginningBalanceDebit, beginningBalanceCrebit,
+                                      currentAmountDebit, currentAmountCrebit, endingBalanceDebit, endingBalanceCrebit)
+        else:
+            lists[accountCode] = Kemuyueb(accountCode, accountName, beginningBalanceDebit, beginningBalanceCrebit,
+                                          currentAmountDebit, currentAmountCrebit, endingBalanceDebit,
+                                          endingBalanceCrebit)
+    return 0, lists
 
 def read_subsidiaryLedgerList():
     log.d('明细账excel文件')
     filename = str
     dir_or_files = os.listdir(config.FILE_DOWNLOAD)
+    if len(dir_or_files)==0:
+        log.d(config.FILE_DOWNLOAD,'文件夹为空')
+        return 1
     for dir_file in dir_or_files:
-        filename =config.FILE_DOWNLOAD+"\\"+ dir_file
-    log.i(dir_file)
+        filename = config.FILE_DOWNLOAD + "\\" + dir_file
+    log.i(filename)
     wb = xlrd.open_workbook(filename=filename)  # 打开文件
 
     sheet1 = wb.sheet_by_name('明细账')  # 通过索引获取表格
-    lastKmCode  = ''
-    lists =dict()
-    subsidiaryLedgers=[]
+    lastKmCode = ''
+    lists = dict()
+    subsidiaryLedgers = []
     for index in range(sheet1.nrows):
         if (index < 3):
             continue
@@ -387,23 +456,23 @@ def read_subsidiaryLedgerList():
 
         sl = SubsidiaryLedger(kmCode, kmName, date, voucherNo, summary, debitAmount, creditAmount, direction, qmYue)
         # subsidiaryLedgers.append(sl)
-        log.d(kmCode,kmName,date, voucherNo, summary, debitAmount,creditAmount,direction,qmYue)
+        # log.d(kmCode,kmName,date, voucherNo, summary, debitAmount,creditAmount,direction,qmYue)
+        # log.d(kmCode,kmName,date, voucherNo, summary, sl.debitAmount,sl.creditAmount,direction,sl.qmYue)
         if (lastKmCode == ''):
             lastKmCode = kmCode
             # log.d('第一次' )
         if (lastKmCode == kmCode):
             subsidiaryLedgers.append(sl)
         else:
-            lists[lastKmCode]=subsidiaryLedgers
+            lists[lastKmCode] = subsidiaryLedgers
             subsidiaryLedgers = []
             subsidiaryLedgers.append(sl)
         if (index == sheet1.nrows - 1):
-            lists[kmCode]=subsidiaryLedgers
+            lists[kmCode] = subsidiaryLedgers
             # log.d('最后一次', len(lists))
             subsidiaryLedgers = []
         lastKmCode = kmCode
     return 0, lists
-
 
 if __name__ == "__main__":
     # read_excel()
@@ -415,4 +484,4 @@ if __name__ == "__main__":
     # read_CompanyInfo()
     # log.i(config.caseCompanyName)
     # log.d(documents)
-    read_subsidiaryLedgerList()
+    read_balanceList()

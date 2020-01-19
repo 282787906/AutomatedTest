@@ -109,11 +109,16 @@ dbLog =str
 
 HOST_SOURCE_PRE='pre'
 HOST_SOURCE_ON_LINE= 'online'
+HOST_SOURCE_ON_XI_AN= 'xiAn'
+HOST_SOURCE_ON_YUN_NAN= 'yunNan'
+HOST_SOURCE_ON_NAN_CHANG= 'nanChang'
+HOST_SOURCE_ON_JIN_KAI_QU= 'jinKaiQu'
 FILE_DOWNLOAD='d:\\seleniumTemp\\download'
 hostSource = None
 def set_host(host):
     global domain
     global domain_cs_info
+    global domain_api
     global dbHost
     global dbPort
     global dbUser
@@ -121,10 +126,14 @@ def set_host(host):
     global dbPlatform
     global dbLog
     global hostSource
+    hostSource = host
     if host==HOST_SOURCE_ON_LINE:
-        hostSource= 'online'
+
         log.i('设置环境参数-生产环境')
         domain = 'http://sstax.cn:1000/'
+
+        domain_cs_info = 'http://sstax.cn:1000/'
+        domain_api = 'http://sstax.cn:1000/'
         dbHost = '222.73.99.99'
         dbPort = 3030
         dbUser = 'csdb'
@@ -133,11 +142,16 @@ def set_host(host):
         dbLog = 'cs-log'
     elif host==HOST_SOURCE_PRE:
 
-        hostSource= 'pre'
+
         log.i('设置环境参数-预发布环境')
         # domain = 'http://pre.sstax.cn:81/'
-        domain = 'http://learn.sstax.cn:81/'
-        domain_cs_info = 'http://learn.sstax.cn:81/'
+        # domain = 'http://61.153.190.93:18080'
+        # domain_cs_info = 'http://61.153.190.93:18080'
+        # domain_cs_info = 'pre.sstax.cn:81'
+        domain = 'http://101.89.137.10:48080'
+        domain_cs_info = 'http://101.89.137.10:48080'
+        # domain_api = 'http://pre.sstax.cn:81'
+        domain_api = 'http://sstax.cn:1000/'
         dbHost = '222.73.99.99'
         dbPort = 3031
         dbUser = 'precsdb'
@@ -145,11 +159,67 @@ def set_host(host):
         dbPlatform = 'pre_cs_platform'
 
         dbLog = 'pre-cs-log'
+    elif host == HOST_SOURCE_ON_XI_AN:
+
+
+        log.i('设置环境参数-西安环境')
+        domain = 'http://101.89.137.10:48080'
+        domain_cs_info = 'http://101.89.137.10:48080'
+        # domain_api = 'http://pre.sstax.cn:81'
+        domain_api = 'http://sstax.cn:1000/'
+        dbHost = '222.73.99.99'
+        dbPort = 3031
+        dbUser = 'precsdb'
+        dbPasswd = 'Pwd2018db'
+        dbPlatform = 'pre_cs_platform'
+
+        dbLog = 'pre-cs-log'
+    elif host == HOST_SOURCE_ON_YUN_NAN:
+
+        log.i('设置环境参数-云南环境')
+        domain = 'http://61.153.190.93:18080'
+        domain_cs_info = 'http://61.153.190.93:18080'
+        domain_api = 'http://61.153.190.93:18080/'
+        dbHost = '222.73.99.99'
+        dbPort = 3031
+        dbUser = 'precsdb'
+        dbPasswd = 'Pwd2018db'
+        dbPlatform = 'pre_cs_platform'
+        dbLog = 'pre-cs-log'
+    elif host == HOST_SOURCE_ON_JIN_KAI_QU:
+
+        log.i('设置环境参数-金开区环境')
+        domain = 'http://101.91.230.16:28080'
+        domain_cs_info = 'http://101.91.230.16:28080'
+        domain_api = 'http://101.91.230.16:28080/'
+        dbHost = '222.73.99.99'
+        dbPort = 3031
+        dbUser = 'precsdb'
+        dbPasswd = 'Pwd2018db'
+        dbPlatform = 'pre_cs_platform'
+        dbLog = 'pre-cs-log'
+    elif host == HOST_SOURCE_ON_NAN_CHANG:
+
+        log.i('设置环境参数-南昌环境')
+        domain = 'http://183.134.73.180:18080'
+        domain_cs_info ='http://183.134.73.180:18080'
+        domain_api = 'http://183.134.73.180:18080'
+        dbHost = '222.73.99.99'
+        dbPort = 3031
+        dbUser = 'precsdb'
+        dbPasswd = 'Pwd2018db'
+        dbPlatform = 'pre_cs_platform'
+        dbLog = 'pre-cs-log'
     else:
         log.w('未设置环境参数 ')
 
         hostSource = None
-
+    dbHost = '222.73.99.99'
+    dbPort = 3030
+    dbUser = 'csdb'
+    dbPasswd = 'Pwd!2018@db'
+    dbPlatform = 'fs-admin'
+    dbLog = 'cs-log'
 
 
 WHILE_WAIT_SLEEP = 0.1

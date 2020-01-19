@@ -6,7 +6,7 @@ from selenium import webdriver
 
 from conf import config
 from conf.config import window_size_w, window_size_h
-from functionOther import apiBalanceList
+from functionOther import apiBalanceList, apiBalanceSheetList, subsidiaryLedgerList, cashFlowList
 from functionPage import login, toCertificateInput, addCertificate, certificateList, toThird, initqmjz, \
     toSettleAccounts, originCertificate, kmqcfun, contactsunitlist, loginNew
 from tools import log, commonSelenium
@@ -18,8 +18,6 @@ def paramInfo():
     return str
 if __name__ == "__main__":
     print('main')
-    # config.set_host(config.HOST_SOURCE_PRE)
-
     print(paramInfo())
     if len(sys.argv) == 3 and (sys.argv[1] == '0' or sys.argv[1] == '1' or sys.argv[1] == '2') and (
             sys.argv[2] == 'online' or sys.argv[2] == 'pre'):
@@ -30,6 +28,9 @@ if __name__ == "__main__":
     else:
         option = webdriver.ChromeOptions()
         option.add_argument('disable-infobars')
+        prefs = {'profile.default_content_settings.popups': 0, 'download.default_directory': config.FILE_DOWNLOAD}
+
+        option.add_experimental_option('prefs', prefs)
         driver = webdriver.Chrome(options=option)
         driver.set_window_size(window_size_w, window_size_h)
         driver.implicitly_wait(5)
@@ -105,6 +106,21 @@ if __name__ == "__main__":
             if (ret != 0):
                 log.e('余额表对比失败', ret)
                 time.sleep(60)
+        if (ret == 0):
+            ret = apiBalanceSheetList.run(driver)
+            if (ret != 0):
+                log.e('资产负债表对比失败', ret)
+                time.sleep(60)
+        if (ret == 0):
+            ret = cashFlowList.run(driver)
+            if (ret != 0):
+                log.e('现金流量表对比失败', ret)
+                time.sleep(60)
+        # if (ret == 0):
+        #     ret = subsidiaryLedgerList.run(driver)
+        #     if (ret != 0):
+        #         log.e('明细账对比失败', ret)
+        #         time.sleep(60)
         log.e('测试完成')
         time.sleep(5)
         driver.quit()  # 使用完, 记得关闭浏览器, 不然chromedriver.exe进程为一直在内存中.

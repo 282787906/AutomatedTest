@@ -7,7 +7,7 @@ from tools import log
 
 
 def run(userName ,pwd):
-    log.d('cs-info 登录')
+    log.d('cs-info 登录',config.domain_cs_info)
     kv = {'userName': userName, 'pwd': pwd}
     response = requests.get(config.domain_cs_info + '/cs-info/user/login', params=kv, allow_redirects=False)
     response.encoding = 'utf-8'
@@ -27,7 +27,7 @@ def run(userName ,pwd):
 
 if __name__ == "__main__":
     print('DbMonitor')
-    config.set_host(config.HOST_SOURCE_PRE)
+    # config.set_host(config.HOST_SOURCE_PRE)
     if (config.hostSource == None):
         log.e('未设置数据源')
     else:
