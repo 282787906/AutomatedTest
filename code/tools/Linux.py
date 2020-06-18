@@ -5,10 +5,11 @@ import paramiko
 # 定义一个类，表示一台远端linux主机
 class Linux(object):
     # 通过IP, 用户名，密码，超时时间初始化一个远程Linux主机
-    def __init__(self, ip, username, password, timeout=30):
+    def __init__(self, ip, username, password,port, timeout=30):
         self.ip = ip
         self.username = username
         self.password = password
+        self.port = port
         self.timeout = timeout
         # transport和chanel
         self.t = ''
@@ -21,7 +22,7 @@ class Linux(object):
         while True:
             # 连接过程中可能会抛出异常，比如网络不通、链接超时
             try:
-                self.t = paramiko.Transport(sock=(self.ip, 22))
+                self.t = paramiko.Transport(sock=(self.ip,self.port))
                 self.t.connect(username=self.username, password=self.password)
                 self.chan = self.t.open_session()
                 self.chan.settimeout(self.timeout)
@@ -82,23 +83,26 @@ class Linux(object):
 
 # 连接正常的情况
 if __name__ == '__main__':
-    host = Linux('192.168.31.5', 'root', 'P2017r!@os')  # 传入Ip，用户名，密码
+
+    # host = Linux('192.168.31.5', 'root', 'P2017R!@os')  # 传入Ip，用户名，密码
+    host = Linux('218.78.84.51', 'hyapp', 'HY_jskcy%@#25',10022)  # 传入Ip，用户名，密码
     host.connect()
 
-    host.close()
-    # result = host.send('ls')  # 发送一个查看ip的命令
-    # def input_cmd(str):
-    #     return input(str)
-    #
-    #
-    # tishi_msg = "输入命令："
-    # while True:
-    #     msg = input(tishi_msg)
-    #     if msg == "exit":
-    #         host.close()
-    #         break
-    #     else:
-    #         res = host.send(msg)
-    #         data = res.replace(res.split("\n")[-1], "")
-    #         tishi_msg = res.split("\n")[-1]
-    #         print(res.split("\n")[-1] + data.strip("\n"))
+    # host.close()
+    # result = host.send('sh startup.sh')  # 发送一个查看ip的命令
+    result = host.send('ls')  # 发送一个查看ip的命令
+    def input_cmd(str):
+        return input(str)
+
+
+    tishi_msg = "输入命令："
+    while True:
+        msg = input(tishi_msg)
+        if msg == "exit":
+            host.close()
+            break
+        else:
+            res = host.send(msg)
+            data = res.replace(res.split("\n")[-1], "")
+            tishi_msg = res.split("\n")[-1]
+            print(res.split("\n")[-1] + data.strip("\n"))
