@@ -114,6 +114,9 @@ HOST_SOURCE_ON_YUN_NAN= 'yunNan'
 HOST_SOURCE_ON_NAN_CHANG= 'nanChang'
 HOST_SOURCE_ON_JIN_KAI_QU= 'jinKaiQu'
 FILE_DOWNLOAD='d:\\seleniumTemp\\download'
+FILE_DOWNLOAD_COMPANY='D:\\seleniumTemp\\归档\\'
+
+
 hostSource = None
 def set_host(host):
     global domain
@@ -223,9 +226,11 @@ def set_host(host):
 
 
 WHILE_WAIT_SLEEP = 0.1
+WHILE_WAIT_SLEEP_LONG= 0.5
 ACTION_WAIT_SLEEP_SHORT = 0.3
 ACTION_WAIT_SLEEP_LONG = 1
 LOAD_PAGE_TIMEOUT = 10
+DOWNLOAD_TIMEOUT = 60
 FAIL_WAIT_SLEEP=20
 
 window_size_w = 1400
@@ -233,4 +238,4 @@ window_size_h = 900
 
 current_x = 0
 current_y = 0
-excelTools.read_CompanyInfo()
+# excelTools.read_CompanyInfo()

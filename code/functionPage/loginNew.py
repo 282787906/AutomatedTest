@@ -2,9 +2,9 @@ import json
 import time
 
 import requests
+
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
-
 from conf import config
 from conf.config import ACTION_WAIT_SLEEP_LONG, LOAD_PAGE_TIMEOUT, WHILE_WAIT_SLEEP
 from tools.commonSelenium import toPage

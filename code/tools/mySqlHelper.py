@@ -495,6 +495,76 @@ def getUnCreateWaitTime():
         return -2, None,  '数据库查询异常'
     finally:
         # 关闭数据库连接
+        conn.close()# 生成凭证等待
+
+def insertBalance(kemuyueb,company):
+    try:
+        conn = pymysql.connect(host='localhost',
+                               port=3306,
+                               user='root',
+                               passwd='root',
+                               db='lxhwdata',
+                               charset='utf8')
+    except:
+
+        print('数据库连接异常:', traceback._context_message)
+        traceback.print_exc()
+        return -1,   '数据库连接异常 '
+
+    try:
+        # 使用 cursor() 方法创建一个游标对象 cursor
+        cursor = conn.cursor(pymysql.cursors.DictCursor)
+        # 使用 execute()  方法执行 SQL 查询
+
+        sql = "INSERT INTO mig_balance (COMPANY_ID,CODE, NAME,OPENING_DEBIT_VALUE,OPENING_CREDIT_VALUE,CURRENT_DEBIT_VALUE," \
+              "CURRENT_CREDIT_VALUE,CLOSING_DEBIT_VALUE,CLOSING_CREDIT_VALUE,TYPE) VALUES (%s,%s, %s, %s, %s, %s, %s, %s, %s,2)"
+        val = (company,kemuyueb.accountCode, kemuyueb.accountName,kemuyueb.beginningBalanceDebit,kemuyueb.beginningBalanceCrebit,
+               kemuyueb.currentAmountDebit,kemuyueb.currentAmountCrebit,kemuyueb.endingBalanceDebit,kemuyueb.endingBalanceCrebit)
+        cursor.execute(sql,val)
+        conn.commit()
+
+        return 0,cursor.rowcount
+    except:
+        traceback.print_exc()
+
+        print('保存余额表异常:', traceback._context_message)
+        return -2,    '数据库查询异常'
+    finally:
+        # 关闭数据库连接
+        conn.close()
+
+def insertBalanceBaseCode(kemuyueb, company):
+    try:
+        conn = pymysql.connect(host='localhost',
+                               port=3306,
+                               user='root',
+                               passwd='root',
+                               db='hycaitestdata',
+                               charset='utf8')
+    except:
+
+        print('数据库连接异常:', traceback._context_message)
+        traceback.print_exc()
+        return -1, '数据库连接异常 '
+
+    try:
+        # 使用 cursor() 方法创建一个游标对象 cursor
+        cursor = conn.cursor(pymysql.cursors.DictCursor)
+        # 使用 execute()  方法执行 SQL 查询
+
+        sql = "INSERT INTO mig_balance (COMPANY_ID,CODE, NAME,TYPE) VALUES (%s,%s, %s, 0)"
+        val = (company, kemuyueb.accountCode, kemuyueb.accountName)
+        cursor.execute(sql, val)
+        conn.commit()
+
+        return 0, cursor.rowcount
+    except:
+        traceback.print_exc()
+
+        print('保存科目表异常:', traceback._context_message)
+        return -2, '数据库查询异常'
+    finally:
+        # 关闭数据库连接
         conn.close()
 if __name__ == "__main__":
     # index = 0

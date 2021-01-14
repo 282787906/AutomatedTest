@@ -357,13 +357,14 @@ def read_documentInput():
     log.d('读取凭证excel文件完成，凭证数量：', len(documents))
     return 0, documents, None
 
+
 def read_balanceSheetList():
     log.d('资产负债表excel文件')
     filename = str
     dir_or_files = os.listdir(config.FILE_DOWNLOAD)
-    if len(dir_or_files)==0:
-        log.d(config.FILE_DOWNLOAD,'文件夹为空')
-        return 1,None
+    if len(dir_or_files) == 0:
+        log.d(config.FILE_DOWNLOAD, '文件夹为空')
+        return 1, None
     for dir_file in dir_or_files:
         filename = config.FILE_DOWNLOAD + "\\" + dir_file
     # log.i(filename)
@@ -376,28 +377,30 @@ def read_balanceSheetList():
             continue
 
         if sheet1.cell_value(index, 1) != '' and sheet1.cell_value(index, 1) != '11':
-            line =str(int(sheet1.cell_value(index, 1)))
+            line = str(int(sheet1.cell_value(index, 1)))
             qm = sheet1.cell_value(index, 2)
             nc = sheet1.cell_value(index, 3)
 
-            lists['r' + line + 'qm'] = qm if qm!='0' else'0.00'
-            lists['r' + line + 'nc'] = nc  if nc!='0' else'0.00'
+            lists['r' + line + 'qm'] = qm if qm != '0' else '0.00'
+            lists['r' + line + 'nc'] = nc if nc != '0' else '0.00'
         if sheet1.cell_value(index, 5) != '':
             line = str(int(sheet1.cell_value(index, 5)))
-            qm = sheet1.cell_value(index,6)
+            qm = sheet1.cell_value(index, 6)
             nc = sheet1.cell_value(index, 7)
 
-            lists['r' + line + 'qm'] = qm if qm!='0' else'0.00'
-            lists['r' + line + 'nc'] = nc if nc!='0' else'0.00'
+            lists['r' + line + 'qm'] = qm if qm != '0' else '0.00'
+            lists['r' + line + 'nc'] = nc if nc != '0' else '0.00'
 
     return 0, lists
+
+
 def read_balanceList():
     log.d('余额表excel文件')
     filename = str
     dir_or_files = os.listdir(config.FILE_DOWNLOAD)
-    if len(dir_or_files)==0:
-        log.d(config.FILE_DOWNLOAD,'文件夹为空')
-        return 1,None
+    if len(dir_or_files) == 0:
+        log.d(config.FILE_DOWNLOAD, '文件夹为空')
+        return 1, None
     for dir_file in dir_or_files:
         filename = config.FILE_DOWNLOAD + "\\" + dir_file
     log.i(filename)
@@ -418,19 +421,20 @@ def read_balanceList():
         endingBalanceCrebit = round(sheet1.cell_value(index, 7))
         if index == sheet1.nrows - 1:
             lists['sum'] = Kemuyueb('sum', accountName, beginningBalanceDebit, beginningBalanceCrebit,
-                                      currentAmountDebit, currentAmountCrebit, endingBalanceDebit, endingBalanceCrebit)
+                                    currentAmountDebit, currentAmountCrebit, endingBalanceDebit, endingBalanceCrebit)
         else:
             lists[accountCode] = Kemuyueb(accountCode, accountName, beginningBalanceDebit, beginningBalanceCrebit,
                                           currentAmountDebit, currentAmountCrebit, endingBalanceDebit,
                                           endingBalanceCrebit)
     return 0, lists
 
+
 def read_subsidiaryLedgerList():
     log.d('明细账excel文件')
     filename = str
     dir_or_files = os.listdir(config.FILE_DOWNLOAD)
-    if len(dir_or_files)==0:
-        log.d(config.FILE_DOWNLOAD,'文件夹为空')
+    if len(dir_or_files) == 0:
+        log.d(config.FILE_DOWNLOAD, '文件夹为空')
         return 1
     for dir_file in dir_or_files:
         filename = config.FILE_DOWNLOAD + "\\" + dir_file
@@ -474,6 +478,69 @@ def read_subsidiaryLedgerList():
         lastKmCode = kmCode
     return 0, lists
 
+
+def read_Balance(path):
+    log.d('读取用例公司信息excel文件')
+    dir = os.path.dirname(__file__)
+    parent_path = os.path.dirname(dir)
+    # filename = parent_path + '/testCases/湖北达喜供应链管理有限公司_余额表_202004-202004.xls'  # 根据项目所在路径，找到用例所在的相对项目的路径
+    wb = xlrd.open_workbook(filename=path)  # 打开文件
+    bm_index = 0
+    mc_index = 1
+    qcD_index = 2
+    qcC_index = 3
+    bqD_index = 4
+    bqC_index = 5
+    qmD_index = 6
+    qmC_index = 7
+    lists = dict()
+    sheet1 = wb.sheet_by_name('余额表')  # 通过索引获取表格
+    for index in range(sheet1.nrows):
+        if index < 5:
+            continue
+
+        bm = sheet1.cell_value(index, bm_index)
+        mc = sheet1.cell_value(index, mc_index)
+        qcD = sheet1.cell_value(index, qcD_index)
+        qcC = sheet1.cell_value(index, qcC_index)
+        bqD = sheet1.cell_value(index, bqD_index)
+        bqC = sheet1.cell_value(index, bqC_index)
+        qmD = sheet1.cell_value(index, qmD_index)
+        qmC = sheet1.cell_value(index, qmC_index)
+        if index == sheet1.nrows - 1:
+            lists['sum'] = Kemuyueb('sum',   mc, qcD, qcC, bqD, bqC, qmD, qmC)
+        else:
+            if bm =='':
+                continue
+            lists[bm] = Kemuyueb(bm, mc, qcD, qcC, bqD, bqC, qmD, qmC)
+        # log.i(bm, mc, qcD, qcC, bqD, bqC, qmD, qmC)
+    return 0 ,lists
+
+def read_BalanceBaseCode(path):
+    log.d('读取用例公司信息excel文件')
+    dir = os.path.dirname(__file__)
+    # parent_path = os.path.dirname(dir)
+    # filename = parent_path + '/testCases/湖北达喜供应链管理有限公司_余额表_202004-202004.xls'  # 根据项目所在路径，找到用例所在的相对项目的路径
+    wb = xlrd.open_workbook(filename=path)  # 打开文件
+    bm_index = 0
+    mc_index = 1
+
+    lists = dict()
+    sheet1 = wb.sheet_by_name('科目表')  # 通过索引获取表格
+    for index in range(sheet1.nrows):
+        if index < 5:
+            continue
+
+        bm = sheet1.cell_value(index, bm_index)
+        mc = sheet1.cell_value(index, mc_index)
+
+        if bm =='':
+            continue
+        lists[bm] = Kemuyueb(bm, mc, 0, 0, 0, 0, 0, 0)
+
+    return 0 ,lists
+
+
 if __name__ == "__main__":
     # read_excel()
     # file = 'C:\\Users\\Liqg\\Desktop\\book1.xlsx'
@@ -484,4 +551,5 @@ if __name__ == "__main__":
     # read_CompanyInfo()
     # log.i(config.caseCompanyName)
     # log.d(documents)
-    read_balanceList()
+    # read_balanceList()
+    read_Balance(None)

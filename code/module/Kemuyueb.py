@@ -11,12 +11,33 @@ class Kemuyueb:
     def __init__(self, accountCode, accountName, beginningBalanceDebit, beginningBalanceCrebit, currentAmountDebit, currentAmountCrebit, endingBalanceDebit, endingBalanceCrebit):
         self.accountCode = accountCode
         self.accountName = accountName
-        self.beginningBalanceDebit = beginningBalanceDebit
-        self.beginningBalanceCrebit = beginningBalanceCrebit
-        self.currentAmountDebit = currentAmountDebit
-        self.currentAmountCrebit = currentAmountCrebit
-        self.endingBalanceDebit = endingBalanceDebit
-        self.endingBalanceCrebit = endingBalanceCrebit
+        if beginningBalanceDebit=='':
+            self.beginningBalanceDebit = 0
+        else:
+            self.beginningBalanceDebit = beginningBalanceDebit
+
+        if beginningBalanceCrebit == '':
+            self.beginningBalanceCrebit = 0
+        else:
+            self.beginningBalanceCrebit = beginningBalanceCrebit
+
+        if currentAmountDebit == '':
+            self.currentAmountDebit = 0
+        else:
+            self.currentAmountDebit = currentAmountDebit
+
+        if currentAmountCrebit == '':
+            self.currentAmountCrebit = 0
+        else:
+            self.currentAmountCrebit = currentAmountCrebit
+        if endingBalanceDebit == '':
+            self.endingBalanceDebit = 0
+        else:
+            self.endingBalanceDebit = endingBalanceDebit
+        if endingBalanceCrebit == '':
+            self.endingBalanceCrebit = 0
+        else:
+            self.endingBalanceCrebit = endingBalanceCrebit
 
 def dict2Kemuyueb(d):
     return Kemuyueb(d['accountCode'], d['accountName'], d['beginningBalanceDebit'],d['beginningBalanceCrebit']
