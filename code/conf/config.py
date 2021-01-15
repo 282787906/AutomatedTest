@@ -114,7 +114,7 @@ HOST_SOURCE_ON_YUN_NAN= 'yunNan'
 HOST_SOURCE_ON_NAN_CHANG= 'nanChang'
 HOST_SOURCE_ON_JIN_KAI_QU= 'jinKaiQu'
 FILE_DOWNLOAD='d:\\seleniumTemp\\download'
-FILE_DOWNLOAD_COMPANY='D:\\seleniumTemp\\归档\\'
+FILE_DOWNLOAD_COMPANY='D:\\seleniumTemp\\归档_众网\\'
 
 
 hostSource = None

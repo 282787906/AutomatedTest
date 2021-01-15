@@ -19,7 +19,7 @@ from functionPage import login, toCertificateInput, addCertificate, certificateL
     toSettleAccounts, originCertificate, kmqcfun, contactsunitlist, loginNew
 from tools import log, commonSelenium
 from tools.commonSelenium import toPage
-from tools.mySqlHelper import insertMigCompany, getMigCompany, updateMigCompanyYear
+from tools.mySqlHelper import insertMigCompany, getMigCompany, updateMigCompanyYear, getMigCompanyMaxSerNo
 
 
 def paramInfo():
@@ -631,13 +631,14 @@ def 归档_切换账簿(driver):
             if not os.path.isdir(path):
                 os.mkdir(path)
             if companies[index].startYear == companies[index].currentYear and companies[index].startYear == 2020:
-                log.i(jindu + '  ' + name + '  ' + str(y) + ' 跳过')
+                log.i(jindu + '  ' + name + '  ' + str(companies[index].currentYear) + ' 跳过')
                 continue
             if not companies[index].currentYear == None:
                 allFileExist = False
                 for y in range(companies[index].startYear, companies[index].currentYear + 1):
-                    if companies[index].currentYear == y and y==2020:
+                    if companies[index].currentYear == y and y == 2020:
                         log.i(jindu + '  ' + name + '  ' + str(y) + ' 跳过')
+                        allFileExist = True
                         continue
                     fileName = path + name + str(y) + '会计归档.zip'
                     if os.path.exists(fileName):
@@ -720,7 +721,7 @@ def 归档_切换账簿(driver):
         return 0
     except BaseException as e:
         r = requests.get(driver.current_url, allow_redirects=False)
-# 归档_切换账簿(driver)
+        # 归档_切换账簿(driver)
         log.exception('归档异常', r.status_code)
         return 1
 
@@ -753,30 +754,37 @@ def 切换账簿_归档(driver):
 
 
 def 遍历账簿_基本信息(driver):
-    serNo = driver.find_elements_by_class_name('ser-no')
+    serNos = driver.find_elements_by_class_name('ser-no')
     names = driver.find_elements_by_class_name('newGap')
     进账簿按钮集合 = driver.find_elements_by_class_name('action-left')
 
     if len(names) != len(进账簿按钮集合):
         log.exception('len(names)!=len(进账簿按钮集合)', str(len(names)), str(len(进账簿按钮集合)))
         return 1
+    retCode, maxSerNo, msg = getMigCompanyMaxSerNo(loginName)
+    if retCode != 0:
+        log.e(msg)
 
     for index in range(len(进账簿按钮集合)):
         try:
+
+            serNo = serNos[index].text
+            if maxSerNo is not None and maxSerNo >= int(serNo):
+                continue
             names[index].click()
-            name = driver.find_element_by_id('base-info-ref_corpName').get_attribute('value')
+            name = driver.find_element_by_id('base-info-ref_custName').get_attribute('value')
             taxNo = driver.find_element_by_id('base-info-ref_taxNo').get_attribute('value')
             startDate = driver.find_element_by_id('caiwu-info-ref_openingPeriod').get_attribute('value')
 
             log.i(names[index].text, name, taxNo, startDate)
-            insertMigCompany(name, taxNo, startDate[0:4], loginName)
+            insertMigCompany(serNo, name, taxNo, startDate[0:4], loginName)
             driver.find_element_by_class_name('closeCustModal').click()
 
         except BaseException as e:
             r = requests.get(driver.current_url, allow_redirects=False)
             log.exception('遍历账簿异常', r.status_code)
-
-    下一页按钮 = driver.find_elements_by_class_name('ant-pagination-item-link')[1]
+    翻页按钮 = driver.find_elements_by_class_name('ant-pagination-item-link')
+    下一页按钮 = 翻页按钮[len(翻页按钮) - 1]
     print(下一页按钮.text)
 
     if 下一页按钮.is_enabled():
@@ -813,8 +821,8 @@ if __name__ == "__main__":
     driver.set_window_size(window_size_w, window_size_h)
     driver.implicitly_wait(5)
 
-    # ret = login(driver, '793763847@qq.com', '970705')
-    ret = login(driver, 'maolianlian@56hui.com', '111111')
+    ret = login(driver, '793763847@qq.com', '970705')
+    # ret = login(driver, 'maolianlian@56hui.com', '111111')
     loginName = 'maolianlian@56hui.com'
     if (ret != 0):
         time.sleep(60)
@@ -822,8 +830,7 @@ if __name__ == "__main__":
     if (ret == 0):
         driver.refresh()
         time.sleep(ACTION_WAIT_SLEEP_LONG)
-        # ret = 遍历账簿_归档(driver)
-
+        # ret = 遍历账簿_基本信息(driver)
         ret = 切换账簿_归档(driver)
         if (ret != 0):
             log.e('遍历账簿失败', ret)

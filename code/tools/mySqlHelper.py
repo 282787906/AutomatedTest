@@ -567,7 +567,7 @@ def insertBalanceBaseCode(kemuyueb, company):
         conn.close()
 
 
-def insertMigCompany(company, taxNo, startYear, site):
+def insertMigCompany(serNo,company, taxNo, startYear, site):
     try:
         conn = pymysql.connect(host='localhost',
                                port=3306,
@@ -586,16 +586,14 @@ def insertMigCompany(company, taxNo, startYear, site):
         cursor = conn.cursor(pymysql.cursors.DictCursor)
         # 使用 execute()  方法执行 SQL 查询
 
-        sql = "INSERT INTO mig_company (companyName,taxNo, startYear,site,status) VALUES (%s,%s, %s,%s, -3)"
-        val = (company, taxNo, startYear, site)
+        sql = "INSERT INTO mig_company_gd (serNo,companyName,taxNo, startYear,site,status) VALUES (%s,%s,%s, %s,%s, -3)"
+        val = (serNo,company, taxNo, startYear, site)
         cursor.execute(sql, val)
         conn.commit()
 
         return 0, cursor.rowcount
-    except:
-        traceback.print_exc()
-
-        print('保存mig_company表 异常:', traceback._context_message)
+    except BaseException as e:
+        log.exception('insertMigCompany 异常:')
         return -2, '数据库查询异常'
     finally:
         # 关闭数据库连接
@@ -620,30 +618,58 @@ def getMigCompany(site):
         # 使用 cursor() 方法创建一个游标对象 cursor
         cursor = conn.cursor(pymysql.cursors.DictCursor)
         # 使用 execute()  方法执行 SQL 查询
-        sql = "SELECT companyName,taxNo ,startYear,site,currentYear FROM mig_company f WHERE  status =-3 and site='%s'" % (site)
-        # sql = "SELECT companyName,taxNo ,startYear FROM mig_company f WHERE  status =-3 "
+        sql = "SELECT serNo,companyName,taxNo ,startYear,site,currentYear FROM mig_company_gd f WHERE  status =-3 and site='%s'" % (site)
         cursor.execute(sql)
         data = []
         for row in cursor.fetchall():
+            serNo= row["serNo"]
             taxNo = row["taxNo"]
             companyName = row["companyName"]
             startYear = row["startYear"]
             currentYear = row["currentYear"]
             site = row["site"]
 
-            model = MigCompany(taxNo, companyName, startYear,currentYear, site)
+            model = MigCompany(serNo,taxNo, companyName, startYear,currentYear, site)
             data.append(model)
         return 0, data, None
 
-    except:
-        traceback.print_exc()
-
-        print('数据库查询异常:', traceback._context_message)
+    except BaseException as e:
+        log.exception('getMigCompany 异常:')
         return -2, None, '数据库查询异常'
     finally:
         # 关闭数据库连接
         conn.close()
 
+def getMigCompanyMaxSerNo(site):
+    try:
+        conn = pymysql.connect(host='localhost',
+                               port=3306,
+                               user='root',
+                               passwd='root',
+                               db='hycaitestdata',
+                               charset='utf8')
+    except:
+
+        print('数据库连接异常:', traceback._context_message)
+        traceback.print_exc()
+        return -1, None, '数据库连接异常 '
+
+    try:
+        # 使用 cursor() 方法创建一个游标对象 cursor
+        cursor = conn.cursor(pymysql.cursors.DictCursor)
+        # 使用 execute()  方法执行 SQL 查询
+        sql = "SELECT max(serNo) maxSerNo FROM mig_company_gd f WHERE  status =-3 and site='%s'" % (site)
+        ret=cursor.execute(sql)
+        for row in cursor.fetchall():
+            maxSerNo = row["maxSerNo"]
+        return 0, maxSerNo, None
+
+    except BaseException as e:
+        log.exception('getMigCompanyMaxSerNo 异常:')
+        return -2, None, '数据库查询异常'
+    finally:
+        # 关闭数据库连接
+        conn.close()
 def updateMigCompanyYear(companyName,site,currentYear):
     try:
         conn = pymysql.connect(host='localhost',
@@ -662,7 +688,7 @@ def updateMigCompanyYear(companyName,site,currentYear):
         # 使用 cursor() 方法创建一个游标对象 cursor
         cursor = conn.cursor()
         # 使用 execute()  方法执行 SQL 查询
-        sql = "update   mig_company f set currentYear=%s WHERE  status =-3 and companyName =%s and site=%s"
+        sql = "update   mig_company_gd f set currentYear=%s WHERE  status =-3 and companyName =%s and site=%s"
 
         cursor.execute(sql,[int(currentYear),companyName,site])
         conn.commit()
