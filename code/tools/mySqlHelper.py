@@ -6,7 +6,6 @@ import pymysql
 
 from conf import config
 
-
 # def getFileTemp():
 #     try:
 #         conn = pymysql.connect(host=config.dbHost,
@@ -48,6 +47,7 @@ from conf import config
 #     finally:
 #         # 关闭数据库连接
 #         conn.close()
+from module.MigCompany import MigCompany
 from module.Template import Template
 from tools import log
 
@@ -72,7 +72,7 @@ def getTemplateSubjectById(id):
         # 使用 execute()  方法执行 SQL 查询
         sql = 'SELECT t.`ID` tId,t.`NAME` tName,t.`SUBJECT_TYPE` subjectType, ts.`ID` tsId,ts.`NAME` tsName,ts.`SUBJECT_ID` kmCode,ts.`SUBJECT_NAME` kmName,ts.`TYPE` jdType  ' \
               'FROM `template` t,template_subject ts ' \
-              'WHERE ts.`DELETE_FLAG`=1 AND t.`DELETE_FLAG`=1  AND ts.`TEMPLATE_ID`=t.`ID` AND t.`ID`='+str(id)
+              'WHERE ts.`DELETE_FLAG`=1 AND t.`DELETE_FLAG`=1  AND ts.`TEMPLATE_ID`=t.`ID` AND t.`ID`=' + str(id)
 
         cursor.execute(sql)
 
@@ -88,7 +88,7 @@ def getTemplateSubjectById(id):
             jdType = row["jdType"]
             config.domain
 
-            model = Template(tId, tName, subjectType,tsId, tsName, kmCode, kmName, jdType)
+            model = Template(tId, tName, subjectType, tsId, tsName, kmCode, kmName, jdType)
             data.append(model)
         return 0, data, None
     except:
@@ -240,7 +240,6 @@ def getTemplateSubjectById(id):
 
 
 def getThirdLog(id):
-
     try:
         conn = pymysql.connect(host=config.dbHost,
                                port=config.dbPort,
@@ -252,27 +251,26 @@ def getThirdLog(id):
 
         print('数据库连接异常:', traceback._context_message)
         traceback.print_exc()
-        return -1, None, None,  '数据库连接异常 '
+        return -1, None, None, '数据库连接异常 '
 
     try:
         # 使用 cursor() 方法创建一个游标对象 cursor
         cursor = conn.cursor(pymysql.cursors.DictCursor)
         # 使用 execute()  方法执行 SQL 查询
-        sql = "SELECT * FROM  cs_third_log  l WHERE l.id="+str(id)
+        sql = "SELECT * FROM  cs_third_log  l WHERE l.id=" + str(id)
         cursor.execute(sql)
         for row in cursor.fetchall():
-
             # print('数据库查:',row["id"])
             # print('数据库查:',row["af"])
             # print('数据库查:',row["bf"])
-            af=row["af"]
-            bf=row["bf"]
-            return 0, str(af, encoding = "utf8"),str(bf, encoding = "utf8"),None
+            af = row["af"]
+            bf = row["bf"]
+            return 0, str(af, encoding="utf8"), str(bf, encoding="utf8"), None
     except:
         traceback.print_exc()
 
         print('数据库查询异常:', traceback._context_message)
-        return -2, None,None,  '数据库查询异常'
+        return -2, None, None, '数据库查询异常'
     finally:
         # 关闭数据库连接
         conn.close()
@@ -322,8 +320,7 @@ def getConnStatus(connConfig):
                                charset='utf8')
     except BaseException  as e:
 
-
-        log.e('数据库连接异常:',e, traceback._context_message)
+        log.e('数据库连接异常:', e, traceback._context_message)
         traceback.print_exc()
         return -1, None, None, '数据库连接异常 '
 
@@ -343,7 +340,7 @@ def getConnStatus(connConfig):
         for row in cursor.fetchall():
             processCount = processCount + 1
 
-        return 0, int(max_connections),processCount,None
+        return 0, int(max_connections), processCount, None
     except:
         traceback.print_exc()
 
@@ -352,6 +349,7 @@ def getConnStatus(connConfig):
     finally:
         # 关闭数据库连接
         conn.close()
+
 
 def getUnPdfCount():
     try:
@@ -365,7 +363,7 @@ def getUnPdfCount():
 
         print('数据库连接异常:', traceback._context_message)
         traceback.print_exc()
-        return -1, None,  '数据库连接异常 '
+        return -1, None, '数据库连接异常 '
 
     try:
         # 使用 cursor() 方法创建一个游标对象 cursor
@@ -376,13 +374,12 @@ def getUnPdfCount():
         for row in cursor.fetchall():
             count = row["count"]
 
-
-        return 0, count,None
+        return 0, count, None
     except:
         traceback.print_exc()
 
         print('数据库查询异常:', traceback._context_message)
-        return -2, None,  '数据库查询异常'
+        return -2, None, '数据库查询异常'
     finally:
         # 关闭数据库连接
         conn.close()
@@ -400,7 +397,7 @@ def getUnHeHeCount():
 
         print('数据库连接异常:', traceback._context_message)
         traceback.print_exc()
-        return -1, None,  '数据库连接异常 '
+        return -1, None, '数据库连接异常 '
 
     try:
         # 使用 cursor() 方法创建一个游标对象 cursor
@@ -412,13 +409,12 @@ def getUnHeHeCount():
         for row in cursor.fetchall():
             count = row["count"]
 
-
-        return 0, count,None
+        return 0, count, None
     except:
         traceback.print_exc()
 
         print('数据库查询异常:', traceback._context_message)
-        return -2, None,  '数据库查询异常'
+        return -2, None, '数据库查询异常'
     finally:
         # 关闭数据库连接
         conn.close()
@@ -436,7 +432,7 @@ def getUnHeHeWaitTime():
 
         print('数据库连接异常:', traceback._context_message)
         traceback.print_exc()
-        return -1, None,  '数据库连接异常 '
+        return -1, None, '数据库连接异常 '
 
     try:
         # 使用 cursor() 方法创建一个游标对象 cursor
@@ -444,20 +440,20 @@ def getUnHeHeWaitTime():
         # 使用 execute()  方法执行 SQL 查询
         sql = "SELECT   TIMESTAMPDIFF(MINUTE, f.`time`,NOW()) dt, f.* FROM `file_temp` f WHERE (f.type = 1 OR f.type = 2 ) AND f.`hh_flag` = 1 ORDER BY id LIMIT 1"
         cursor.execute(sql)
-        minutes=0
+        minutes = 0
         for row in cursor.fetchall():
             minutes = row["dt"]
 
-
-        return 0, minutes,None
+        return 0, minutes, None
     except:
         traceback.print_exc()
 
         print('数据库查询异常:', traceback._context_message)
-        return -2, None,  '数据库查询异常'
+        return -2, None, '数据库查询异常'
     finally:
         # 关闭数据库连接
         conn.close()
+
 
 # 生成凭证等待
 def getUnCreateWaitTime():
@@ -472,7 +468,7 @@ def getUnCreateWaitTime():
 
         print('数据库连接异常:', traceback._context_message)
         traceback.print_exc()
-        return -1, None,  '数据库连接异常 '
+        return -1, None, '数据库连接异常 '
 
     try:
         # 使用 cursor() 方法创建一个游标对象 cursor
@@ -482,22 +478,22 @@ def getUnCreateWaitTime():
               "WHERE (f.type = 1 OR f.type = 2) AND f.`hh_flag` = 2 AND f.`auto_flg` IS NULL AND " \
               "f.`uid` IN  (SELECT uid FROM `fun_ext` k WHERE k. TYPE=1 AND k.`fun`=3) ORDER BY id LIMIT 1 ;"
         cursor.execute(sql)
-        minutes=0
+        minutes = 0
         for row in cursor.fetchall():
             minutes = row["dt"]
 
-
-        return 0, minutes,None
+        return 0, minutes, None
     except:
         traceback.print_exc()
 
         print('数据库查询异常:', traceback._context_message)
-        return -2, None,  '数据库查询异常'
+        return -2, None, '数据库查询异常'
     finally:
         # 关闭数据库连接
-        conn.close()# 生成凭证等待
+        conn.close()  # 生成凭证等待
 
-def insertBalance(kemuyueb,company):
+
+def insertBalance(kemuyueb, company):
     try:
         conn = pymysql.connect(host='localhost',
                                port=3306,
@@ -509,7 +505,7 @@ def insertBalance(kemuyueb,company):
 
         print('数据库连接异常:', traceback._context_message)
         traceback.print_exc()
-        return -1,   '数据库连接异常 '
+        return -1, '数据库连接异常 '
 
     try:
         # 使用 cursor() 方法创建一个游标对象 cursor
@@ -518,20 +514,23 @@ def insertBalance(kemuyueb,company):
 
         sql = "INSERT INTO mig_balance (COMPANY_ID,CODE, NAME,OPENING_DEBIT_VALUE,OPENING_CREDIT_VALUE,CURRENT_DEBIT_VALUE," \
               "CURRENT_CREDIT_VALUE,CLOSING_DEBIT_VALUE,CLOSING_CREDIT_VALUE,TYPE) VALUES (%s,%s, %s, %s, %s, %s, %s, %s, %s,2)"
-        val = (company,kemuyueb.accountCode, kemuyueb.accountName,kemuyueb.beginningBalanceDebit,kemuyueb.beginningBalanceCrebit,
-               kemuyueb.currentAmountDebit,kemuyueb.currentAmountCrebit,kemuyueb.endingBalanceDebit,kemuyueb.endingBalanceCrebit)
-        cursor.execute(sql,val)
+        val = (company, kemuyueb.accountCode, kemuyueb.accountName, kemuyueb.beginningBalanceDebit,
+               kemuyueb.beginningBalanceCrebit,
+               kemuyueb.currentAmountDebit, kemuyueb.currentAmountCrebit, kemuyueb.endingBalanceDebit,
+               kemuyueb.endingBalanceCrebit)
+        cursor.execute(sql, val)
         conn.commit()
 
-        return 0,cursor.rowcount
+        return 0, cursor.rowcount
     except:
         traceback.print_exc()
 
         print('保存余额表异常:', traceback._context_message)
-        return -2,    '数据库查询异常'
+        return -2, '数据库查询异常'
     finally:
         # 关闭数据库连接
         conn.close()
+
 
 def insertBalanceBaseCode(kemuyueb, company):
     try:
@@ -566,6 +565,119 @@ def insertBalanceBaseCode(kemuyueb, company):
     finally:
         # 关闭数据库连接
         conn.close()
+
+
+def insertMigCompany(company, taxNo, startYear, site):
+    try:
+        conn = pymysql.connect(host='localhost',
+                               port=3306,
+                               user='root',
+                               passwd='root',
+                               db='hycaitestdata',
+                               charset='utf8')
+    except:
+
+        print('数据库连接异常:', traceback._context_message)
+        traceback.print_exc()
+        return -1, '数据库连接异常 '
+
+    try:
+        # 使用 cursor() 方法创建一个游标对象 cursor
+        cursor = conn.cursor(pymysql.cursors.DictCursor)
+        # 使用 execute()  方法执行 SQL 查询
+
+        sql = "INSERT INTO mig_company (companyName,taxNo, startYear,site,status) VALUES (%s,%s, %s,%s, -3)"
+        val = (company, taxNo, startYear, site)
+        cursor.execute(sql, val)
+        conn.commit()
+
+        return 0, cursor.rowcount
+    except:
+        traceback.print_exc()
+
+        print('保存mig_company表 异常:', traceback._context_message)
+        return -2, '数据库查询异常'
+    finally:
+        # 关闭数据库连接
+        conn.close()
+
+
+def getMigCompany(site):
+    try:
+        conn = pymysql.connect(host='localhost',
+                               port=3306,
+                               user='root',
+                               passwd='root',
+                               db='hycaitestdata',
+                               charset='utf8')
+    except:
+
+        print('数据库连接异常:', traceback._context_message)
+        traceback.print_exc()
+        return -1, None, '数据库连接异常 '
+
+    try:
+        # 使用 cursor() 方法创建一个游标对象 cursor
+        cursor = conn.cursor(pymysql.cursors.DictCursor)
+        # 使用 execute()  方法执行 SQL 查询
+        sql = "SELECT companyName,taxNo ,startYear,site,currentYear FROM mig_company f WHERE  status =-3 and site='%s'" % (site)
+        # sql = "SELECT companyName,taxNo ,startYear FROM mig_company f WHERE  status =-3 "
+        cursor.execute(sql)
+        data = []
+        for row in cursor.fetchall():
+            taxNo = row["taxNo"]
+            companyName = row["companyName"]
+            startYear = row["startYear"]
+            currentYear = row["currentYear"]
+            site = row["site"]
+
+            model = MigCompany(taxNo, companyName, startYear,currentYear, site)
+            data.append(model)
+        return 0, data, None
+
+    except:
+        traceback.print_exc()
+
+        print('数据库查询异常:', traceback._context_message)
+        return -2, None, '数据库查询异常'
+    finally:
+        # 关闭数据库连接
+        conn.close()
+
+def updateMigCompanyYear(companyName,site,currentYear):
+    try:
+        conn = pymysql.connect(host='localhost',
+                               port=3306,
+                               user='root',
+                               passwd='root',
+                               db='hycaitestdata',
+                               charset='utf8')
+    except:
+
+        print('数据库连接异常:', traceback._context_message)
+        traceback.print_exc()
+        return -1, None, '数据库连接异常 '
+
+    try:
+        # 使用 cursor() 方法创建一个游标对象 cursor
+        cursor = conn.cursor()
+        # 使用 execute()  方法执行 SQL 查询
+        sql = "update   mig_company f set currentYear=%s WHERE  status =-3 and companyName =%s and site=%s"
+
+        cursor.execute(sql,[int(currentYear),companyName,site])
+        conn.commit()
+        return 0,   None
+
+    except:
+        traceback.print_exc()
+
+        print('数据库查询异常:', traceback._context_message)
+        return -2,   '数据库查询异常'
+    finally:
+        # 关闭数据库连接
+        conn.close()
+
+
 if __name__ == "__main__":
     # index = 0
     # map = getSubMap()
