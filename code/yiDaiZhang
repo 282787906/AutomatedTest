@@ -636,8 +636,12 @@ def 归档_切换账簿(driver):
             if not companies[index].currentYear == None:
                 allFileExist = False
                 for y in range(companies[index].startYear, companies[index].currentYear + 1):
-                    if companies[index].currentYear == y and y == 2020:
+                    if y > 2020:
                         log.i(jindu + '  ' + name + '  ' + str(y) + ' 跳过')
+                        allFileExist = True
+                        continue
+                    if y == 2020:
+                        log.i(jindu + '  ' + name + '  ' + str(y) + ' 临时跳过')
                         allFileExist = True
                         continue
                     fileName = path + name + str(y) + '会计归档.zip'
@@ -646,6 +650,7 @@ def 归档_切换账簿(driver):
                         allFileExist = True
                     else:
                         allFileExist = False
+                        break
                 if allFileExist:
                     continue
 
@@ -655,18 +660,32 @@ def 归档_切换账簿(driver):
             driver.find_elements_by_class_name('dijitInputInner')[1].send_keys(companies[index].companyName)
 
             time.sleep(ACTION_WAIT_SLEEP_LONG)
-            driver.find_elements_by_class_name('selected-area-list')[0].click()
-
+            ret=driver.find_elements_by_class_name('selected-area-list')
+            if len(ret)==0:
+                log.e(jindu + '  ' + name + '  ' +  ' 公司名模糊查询无结果')
+                continue
+            match=False
+            for i in range(len(ret)):
+                if ret[i].text == companies[index].companyName:
+                    ret[i].click()
+                    match=True
+                    break
+            if not match:
+                log.e(jindu + '  ' + name + '  ' +  ' 公司名模糊查询结果无匹配')
+                continue
             time.sleep(ACTION_WAIT_SLEEP_LONG)
 
             years = driver.find_elements_by_class_name('year')
             updateMigCompanyYear(name, loginName, years[len(years) - 1].text[0:4])
             # del_file(path)
-            if len(years) == 1 and years[0].text == '2020年':
-                log.i(jindu + '  ' + name + '  ' + years[0].text + ' 跳过——')
-                continue
             for i in range(len(years)):
                 fileName = path + name + years[i].text[0:4] + '会计归档.zip'
+                if years[i].text == '2021年':
+                    log.i(jindu + '  ' + name + '  ' + years[i].text + ' 跳过--')
+                    continue
+                if years[i].text == '2020年':
+                    log.i(jindu + '  ' + name + '  ' + years[i].text + ' 临时跳过——')
+                    continue
                 if os.path.exists(fileName):
                     log.i(jindu + '  ' + name + '  ' + years[i].text + '归档文件已存在')
                     continue
@@ -711,7 +730,7 @@ def 归档_切换账簿(driver):
                     times = times + 1
                     if times == maxTimes:
                         log.e(name + years[i].text + '归档文件下载等待 超时')
-                        return 1
+                        break
                     else:
                         log.d(jindu + '  ' + name + '  ' + years[i].text + '归档文件下载等待  ' + str(times) + '/' + str(
                             maxTimes))
@@ -723,7 +742,7 @@ def 归档_切换账簿(driver):
         r = requests.get(driver.current_url, allow_redirects=False)
         # 归档_切换账簿(driver)
         log.exception('归档异常', r.status_code)
-        return 1
+        归档_切换账簿(driver)
 
 
 def 切换账簿_归档(driver):
@@ -828,10 +847,16 @@ if __name__ == "__main__":
         time.sleep(60)
         print(' 登陆失败')
     if (ret == 0):
-        driver.refresh()
-        time.sleep(ACTION_WAIT_SLEEP_LONG)
+        # driver.refresh()
+        # time.sleep(ACTION_WAIT_SLEEP_LONG)
         # ret = 遍历账簿_基本信息(driver)
-        ret = 切换账簿_归档(driver)
+        # ret = 切换账簿_归档(driver)
+
+        # 手动进账簿
+        time.sleep(ACTION_WAIT_SLEEP_LONG)
+        handles = driver.window_handles
+        driver.switch_to.window(handles[1])
+        ret = 归档_切换账簿(driver)
         if (ret != 0):
             log.e('遍历账簿失败', ret)
             time.sleep(60)
