@@ -30,7 +30,7 @@ def paramInfo():
     return str
 
 
-loginName = ''
+site = ''
 
 
 def login(driver, userName, userPwd):
@@ -619,7 +619,7 @@ def 归档_切换账簿(driver):
         log.i('归档管理.click()')
         time.sleep(ACTION_WAIT_SLEEP_LONG)
 
-        retCode, companies, msg = getMigCompany(loginName)
+        retCode, companies, msg = getMigCompany(site)
         if retCode != 0:
             log.e(msg)
 
@@ -628,6 +628,8 @@ def 归档_切换账簿(driver):
             jindu = str(index) + '/' + str(len(companies))
             name = companies[index].companyName.strip()
             path = config.FILE_DOWNLOAD_COMPANY + name + '\\'
+            if path.endswith('*\\'):
+                path = path.replace('*\\', '\\')
             if not os.path.isdir(path):
                 os.mkdir(path)
             if companies[index].startYear == companies[index].currentYear and companies[index].startYear == 2020:
@@ -640,11 +642,11 @@ def 归档_切换账簿(driver):
                         log.i(jindu + '  ' + name + '  ' + str(y) + ' 跳过')
                         allFileExist = True
                         continue
-                    if y == 2020:
-                        log.i(jindu + '  ' + name + '  ' + str(y) + ' 临时跳过')
-                        allFileExist = True
-                        continue
-                    fileName = path + name + str(y) + '会计归档.zip'
+                    # if y == 2020:
+                    #     log.i(jindu + '  ' + name + '  ' + str(y) + ' 临时跳过')
+                    #     allFileExist = True
+                    #     continue
+                    fileName = path + name.replace('*','') + str(y) + '会计归档.zip'
                     if os.path.exists(fileName):
                         log.i(jindu + '  ' + name + '  ' + str(y) + ' 归档文件已存在')
                         allFileExist = True
@@ -660,32 +662,32 @@ def 归档_切换账簿(driver):
             driver.find_elements_by_class_name('dijitInputInner')[1].send_keys(companies[index].companyName)
 
             time.sleep(ACTION_WAIT_SLEEP_LONG)
-            ret=driver.find_elements_by_class_name('selected-area-list')
-            if len(ret)==0:
-                log.e(jindu + '  ' + name + '  ' +  ' 公司名模糊查询无结果')
+            ret = driver.find_elements_by_class_name('selected-area-list')
+            if len(ret) == 0:
+                log.e(jindu + '  ' + name + '  ' + ' 公司名模糊查询无结果')
                 continue
-            match=False
+            match = False
             for i in range(len(ret)):
                 if ret[i].text == companies[index].companyName:
                     ret[i].click()
-                    match=True
+                    match = True
                     break
             if not match:
-                log.e(jindu + '  ' + name + '  ' +  ' 公司名模糊查询结果无匹配')
+                log.e(jindu + '  ' + name + '  ' + ' 公司名模糊查询结果无匹配')
                 continue
             time.sleep(ACTION_WAIT_SLEEP_LONG)
 
             years = driver.find_elements_by_class_name('year')
-            updateMigCompanyYear(name, loginName, years[len(years) - 1].text[0:4])
+            updateMigCompanyYear(name, site, years[len(years) - 1].text[0:4])
             # del_file(path)
             for i in range(len(years)):
-                fileName = path + name + years[i].text[0:4] + '会计归档.zip'
+                fileName = path + name.replace('*', '') + years[i].text[0:4] + '会计归档.zip'
                 if years[i].text == '2021年':
                     log.i(jindu + '  ' + name + '  ' + years[i].text + ' 跳过--')
                     continue
-                if years[i].text == '2020年':
-                    log.i(jindu + '  ' + name + '  ' + years[i].text + ' 临时跳过——')
-                    continue
+                # if years[i].text == '2020年':
+                #     log.i(jindu + '  ' + name + '  ' + years[i].text + ' 临时跳过——')
+                #     continue
                 if os.path.exists(fileName):
                     log.i(jindu + '  ' + name + '  ' + years[i].text + '归档文件已存在')
                     continue
@@ -719,10 +721,10 @@ def 归档_切换账簿(driver):
                 times = 0
                 while (times < maxTimes):
                     list = os.listdir(config.FILE_DOWNLOAD)
-                    if len(list) > 0 and list[0].startswith(name) and list[0].endswith('.zip'):
+                    if len(list) > 0 and list[0].startswith(name.replace('*', '')) and list[0].endswith('.zip'):
                         log.i(jindu + '  ' + name + '  ' + years[i].text + ' 下载Excel完成 复制')
                         os.rename(config.FILE_DOWNLOAD + "\\" + list[0],
-                                  path + list[0])
+                                  path + list[0].replace('_', ''))
                         driver.find_elements_by_class_name('els_span newtipNode')
 
                         log.i(jindu + '  ' + name + '  ' + years[i].text + ' 复制完成')
@@ -780,7 +782,7 @@ def 遍历账簿_基本信息(driver):
     if len(names) != len(进账簿按钮集合):
         log.exception('len(names)!=len(进账簿按钮集合)', str(len(names)), str(len(进账簿按钮集合)))
         return 1
-    retCode, maxSerNo, msg = getMigCompanyMaxSerNo(loginName)
+    retCode, maxSerNo, msg = getMigCompanyMaxSerNo(site)
     if retCode != 0:
         log.e(msg)
 
@@ -796,7 +798,7 @@ def 遍历账簿_基本信息(driver):
             startDate = driver.find_element_by_id('caiwu-info-ref_openingPeriod').get_attribute('value')
 
             log.i(names[index].text, name, taxNo, startDate)
-            insertMigCompany(serNo, name, taxNo, startDate[0:4], loginName)
+            insertMigCompany(serNo, name, taxNo, startDate[0:4], site)
             driver.find_element_by_class_name('closeCustModal').click()
 
         except BaseException as e:
@@ -839,18 +841,25 @@ if __name__ == "__main__":
     driver = webdriver.Chrome(options=option)
     driver.set_window_size(window_size_w, window_size_h)
     driver.implicitly_wait(5)
+    # 合肥账号是13965692190，密码是568565
+    # 明光公司的易代账主管账号18815502801密码lym123456
+    # 合肥/池州 账号 13965692190 密码 568565
+    # ret = login(driver, '13965692190', '568565') #合肥/池州
+    # site = '合肥池州'
 
-    ret = login(driver, '793763847@qq.com', '970705')
+    ret = login(driver, '793763847@qq.com', '970705') #合肥/池州
+    site = '江苏众网'
+
+    # ret = login(driver, '793763847@qq.com', '970705')
     # ret = login(driver, 'maolianlian@56hui.com', '111111')
-    loginName = 'maolianlian@56hui.com'
     if (ret != 0):
         time.sleep(60)
         print(' 登陆失败')
     if (ret == 0):
-        # driver.refresh()
+        driver.refresh()
         # time.sleep(ACTION_WAIT_SLEEP_LONG)
         # ret = 遍历账簿_基本信息(driver)
-        # ret = 切换账簿_归档(driver)
+
 
         # 手动进账簿
         time.sleep(ACTION_WAIT_SLEEP_LONG)
