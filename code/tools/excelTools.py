@@ -540,7 +540,29 @@ def read_BalanceBaseCode(path):
 
     return 0 ,lists
 
+def read_BalanceBaseCodeLangChao(path):
+    log.d('读取用例公司信息excel文件')
+    dir = os.path.dirname(__file__)
+    # parent_path = os.path.dirname(dir)
+    # filename = parent_path + '/testCases/湖北达喜供应链管理有限公司_余额表_202004-202004.xls'  # 根据项目所在路径，找到用例所在的相对项目的路径
+    wb = xlrd.open_workbook(filename=path)  # 打开文件
+    bm_index = 0
+    mc_index = 1
 
+    lists = dict()
+    sheet1 = wb.sheet_by_name('科目')  # 通过索引获取表格
+    for index in range(sheet1.nrows):
+        if index < 5:
+            continue
+
+        bm = sheet1.cell_value(index, bm_index)
+        mc = sheet1.cell_value(index, mc_index)
+
+        if bm =='':
+            continue
+        lists[bm] = Kemuyueb(bm, mc, 0, 0, 0, 0, 0, 0)
+
+    return 0 ,lists
 if __name__ == "__main__":
     # read_excel()
     # file = 'C:\\Users\\Liqg\\Desktop\\book1.xlsx'

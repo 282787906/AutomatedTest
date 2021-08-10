@@ -1,9 +1,5 @@
 import os
-import shutil
-import sys
 import time
-
-from selenium.webdriver import ActionChains
 from selenium.webdriver.support import expected_conditions as EC
 import requests
 from selenium import webdriver
@@ -14,12 +10,10 @@ from selenium.webdriver.support.wait import WebDriverWait
 from conf import config
 from conf.config import window_size_w, window_size_h, ACTION_WAIT_SLEEP_LONG, LOAD_PAGE_TIMEOUT, WHILE_WAIT_SLEEP, \
     ACTION_WAIT_SLEEP_SHORT, DOWNLOAD_TIMEOUT, WHILE_WAIT_SLEEP_LONG
-from functionOther import apiBalanceList, apiBalanceSheetList, subsidiaryLedgerList, cashFlowList
-from functionPage import login, toCertificateInput, addCertificate, certificateList, toThird, initqmjz, \
-    toSettleAccounts, originCertificate, kmqcfun, contactsunitlist, loginNew
 from tools import log, commonSelenium
 from tools.commonSelenium import toPage
-from tools.mySqlHelper import insertMigCompany, getMigCompany, updateMigCompanyYear, getMigCompanyMaxSerNo
+from tools.mySqlHelper import insertMigCompany, getMigCompany, updateMigCompanyYear, getMigCompanyMaxSerNo, \
+    getLangChaoCompany, updateMigCompanyGdStatus
 
 
 def paramInfo():
@@ -30,23 +24,21 @@ def paramInfo():
     return str
 
 
-site = ''
+loginName = ''
 
 
 def login(driver, userName, userPwd):
     try:
-        if toPage(driver, "https://ydz.chanjet.com/"):
+        if toPage(driver, "https://vip.eyun.cn/login/login.html"):
             log.e('CRM登录失败-进入CRM登录页超时')
             return 1
 
-        driver.find_element_by_id('btn_login').click()
-
         time.sleep(ACTION_WAIT_SLEEP_LONG)
 
-        driver.find_element_by_id('ChanjetloginNameInput').send_keys(userName)
-        driver.find_element_by_id('ChanjetloginPwdInput').send_keys(userPwd)
+        driver.find_element_by_id('login-phone').send_keys(userName)
+        driver.find_element_by_id('login-pass').send_keys(userPwd)
 
-        driver.find_element_by_id('loginBtn').click()
+        driver.find_element_by_id('btn-login').click()
         time.sleep(ACTION_WAIT_SLEEP_LONG)
 
         # driver.find_element_by_class_name('sure-btn-qiye-submit').click()
@@ -54,7 +46,7 @@ def login(driver, userName, userPwd):
         times = 0
         maxTimes = int(LOAD_PAGE_TIMEOUT / WHILE_WAIT_SLEEP)
         while times < maxTimes:
-            if driver.current_url.startswith('https://cloud.chanjet.com/'):
+            if driver.current_url.startswith('https://vip.eyun.cn/eyun3/html/#/'):
                 time.sleep(ACTION_WAIT_SLEEP_LONG)
                 log.i('登录成功')
                 return 0
@@ -86,7 +78,7 @@ def getQc(driver):
 
         name = driver.find_element_by_xpath("//div[@class = 'mainLogo']/div[1]/span").text
 
-        path = config.FILE_DOWNLOAD_COMPANY + name + '\\'
+        path = config.FILE_DOWNLOAD_COMPANY_YIDAIZHANG + name + '\\'
         存在科目表 = False
         存在科目期初 = False
         if not os.path.isdir(path):
@@ -182,7 +174,7 @@ def getQc(driver):
 def getBalance(driver):
     try:
         name = driver.find_element_by_xpath("//div[@class = 'mainLogo']/div[1]/span").text
-        path = config.FILE_DOWNLOAD_COMPANY + name + '\\'
+        path = config.FILE_DOWNLOAD_COMPANY_YIDAIZHANG + name + '\\'
         if not os.path.isdir(path):
             os.mkdir(path)
         else:
@@ -238,77 +230,10 @@ def getBalance(driver):
         return 1
 
 
-def getDocument(driver):
-    try:
-        name = driver.find_element_by_xpath("//div[@class = 'mainLogo']/div[1]/span").text
-        path = config.FILE_DOWNLOAD_COMPANY + name + '\\'
-        if not os.path.isdir(path):
-            os.mkdir(path)
-        else:
-            ls = os.listdir(path)
-            for file in ls:
-
-                if file.find('凭证列表') != -1:
-                    log.i('凭证列表已存在')
-                    # return
-        wait = WebDriverWait(driver, 20)
-        凭证 = wait.until(EC.presence_of_element_located((By.ID, 'vouchers')))
-        凭证.click()
-
-        log.i('菜单click')
-        time.sleep(ACTION_WAIT_SLEEP_LONG)
-        # driver.find_element_by_link_text('余额表').click()
-        查看凭证 = wait.until(EC.presence_of_element_located((By.LINK_TEXT, '查看凭证')))
-        查看凭证.click()
-
-        log.i('查看凭证click')
-        time.sleep(ACTION_WAIT_SLEEP_LONG)
-        months = driver.find_elements_by_class_name('monthItem')
-
-        for index in range(len(months)):
-            if months[index].get_attribute('data-month') == '202001':
-                months[index].click()
-        # pagelistarea = wait.until(EC.presence_of_all_elements_located((By.CLASS_NAME, 'page-list-area')))
-        # if str(pagelistarea[0].text).startswith('每页') and str(pagelistarea[0].text).endswith('0条'):
-        #     log.w('不存在凭证')
-        #     return 0
-        del_file(config.FILE_DOWNLOAD, False)
-
-        driver.switch_to.active_element.send_keys(Keys.CONTROL, Keys.LEFT_SHIFT, 'y')
-
-        time.sleep(ACTION_WAIT_SLEEP_SHORT)
-        下载凭证表 = wait.until(EC.presence_of_element_located((By.ID, 'dijit_form_Button_0_label')))
-
-        下载凭证表.click()
-        log.i('下载凭证表click')
-        times = 0
-        maxTimes = int(LOAD_PAGE_TIMEOUT / WHILE_WAIT_SLEEP)
-        while (times < maxTimes):
-            list = os.listdir(config.FILE_DOWNLOAD)
-            if len(list) > 0 and list[0].endswith('.xls'):
-                os.rename(config.FILE_DOWNLOAD + "\\" + list[0],
-                          path + list[0])
-
-                driver.find_elements_by_class_name('els_span newtipNode')
-                log.e('下载凭证表完成')
-                break
-            times = times + 1
-            if times == maxTimes:
-                log.e('下载凭证表等待 超时')
-                return 1
-            time.sleep(WHILE_WAIT_SLEEP)
-        return 0
-    except BaseException as e:
-        r = requests.get(driver.current_url, allow_redirects=False)
-
-        log.exception('下载凭证表异常', r.status_code)
-        return 1
-
-
 def getFixedAssets(driver):
     try:
         name = driver.find_element_by_xpath("//div[@class = 'mainLogo']/div[1]/span").text
-        path = config.FILE_DOWNLOAD_COMPANY + name + '\\'
+        path = config.FILE_DOWNLOAD_COMPANY_YIDAIZHANG + name + '\\'
         if not os.path.isdir(path):
             os.mkdir(path)
         else:
@@ -375,7 +300,7 @@ def 遍历账簿(driver):
 
     for index in range(len(进账簿按钮集合)):
         try:
-            path = config.FILE_DOWNLOAD_COMPANY + names[index].text + '\\'
+            path = config.FILE_DOWNLOAD_COMPANY_YIDAIZHANG + names[index].text + '\\'
             存在科目表 = False
             存在科目期初 = False
             存在余额表 = False
@@ -408,7 +333,6 @@ def 遍历账簿(driver):
             driver.switch_to.window(handles[1])
             getQc(driver)
             getBalance(driver)
-            getDocument(driver)
             getFixedAssets(driver)
             driver.close()
             driver.switch_to.window(handles[0])
@@ -448,7 +372,7 @@ def 遍历账簿(driver):
 def 归档(driver):
     try:
         name = driver.find_element_by_xpath("//div[@class = 'mainLogo']/div[1]/span").text
-        path = config.FILE_DOWNLOAD_COMPANY + name + '\\'
+        path = config.FILE_DOWNLOAD_COMPANY_YIDAIZHANG + name + '\\'
         if not os.path.isdir(path):
             os.mkdir(path)
         else:
@@ -604,141 +528,273 @@ def 遍历账簿_归档(driver):
         return 0
 
 
-def 归档_切换账簿(driver):
+def 科目表_切换账簿(driver):
     try:
 
-        wait = WebDriverWait(driver, 20)
-        设置 = wait.until(EC.presence_of_element_located((By.ID, 'moreBtn')))
-        设置.click()
-
-        log.i('菜单click')
-        time.sleep(ACTION_WAIT_SLEEP_LONG)
-        归档管理 = wait.until(EC.presence_of_element_located((By.LINK_TEXT, '归档管理')))
-        归档管理.click()
-
-        log.i('归档管理.click()')
-        time.sleep(ACTION_WAIT_SLEEP_LONG)
-
-        retCode, companies, msg = getMigCompany(site)
+        # 菜单手动
+        toPage(driver, "https://ykj.eyun.cn/eyun3/html/#/accountNumber")
+        retCode, companies, msg = getLangChaoCompany()
         if retCode != 0:
             log.e(msg)
 
             return
+        unFind = 0
         for index in range(len(companies)):
             jindu = str(index) + '/' + str(len(companies))
             name = companies[index].companyName.strip()
-            path = config.FILE_DOWNLOAD_COMPANY + name + '\\'
-            if path.endswith('*\\'):
-                path = path.replace('*\\', '\\')
-            if not os.path.isdir(path):
-                os.mkdir(path)
-            if companies[index].startYear == companies[index].currentYear and companies[index].startYear == 2020:
-                log.i(jindu + '  ' + name + '  ' + str(companies[index].currentYear) + ' 跳过')
-                continue
-            if not companies[index].currentYear == None:
-                allFileExist = False
-                for y in range(companies[index].startYear, companies[index].currentYear + 1):
-                    if y > 2020:
-                        log.i(jindu + '  ' + name + '  ' + str(y) + ' 跳过')
-                        allFileExist = True
-                        continue
-                    # if y == 2020:
-                    #     log.i(jindu + '  ' + name + '  ' + str(y) + ' 临时跳过')
-                    #     allFileExist = True
-                    #     continue
-                    fileName = path + name.replace('*','') + str(y) + '会计归档.zip'
-                    if os.path.exists(fileName):
-                        log.i(jindu + '  ' + name + '  ' + str(y) + ' 归档文件已存在')
-                        allFileExist = True
-                    else:
-                        allFileExist = False
-                        break
-                if allFileExist:
-                    continue
+            path = config.FILE_DOWNLOAD_COMPANY_LANGCHAOYUN + name + '\\'
+            #
+            # list = os.listdir(path)
+            # for index in range(len(companies)):
+            #     log.e(list[index])
+            # if path.endswith('*\\'):
+            #     path = path.replace('*\\', '\\')
+            # if not os.path.isdir(path):
+            #     os.mkdir(path)
+            # if companies[index].startYear == companies[index].currentYear and companies[index].startYear == 2020:
+            #     log.i(jindu + '  ' + name + '  ' + str(companies[index].currentYear) + ' 跳过')
+            #     continue
+            # if not companies[index].currentYear == None:
+            #     allFileExist = False
+            #     for y in range(companies[index].startYear, companies[index].currentYear + 1):
+            #         if y > 2020:
+            #             log.i(jindu + '  ' + name + '  ' + str(y) + ' 跳过')
+            #             allFileExist = True
+            #             continue
+            #         if y == 2020:
+            #             log.i(jindu + '  ' + name + '  ' + str(y) + ' 临时跳过')
+            #             allFileExist = True
+            #             continue
+            #         fileName = path + name.replace('*', '') + str(y) + '会计归档.zip'
+            #         if os.path.exists(fileName):
+            #             log.i(jindu + '  ' + name + '  ' + str(y) + ' 归档文件已存在')
+            #             allFileExist = True
+            #         else:
+            #             allFileExist = False
+            #             break
+            #     if allFileExist:
+            #         continue
 
             # 设置 = wait.until(EC.presence_of_element_located((By.ID, 'moreBtn')))
-            driver.find_element_by_class_name('showTextInArea').click()
-            time.sleep(ACTION_WAIT_SLEEP_LONG)
-            driver.find_elements_by_class_name('dijitInputInner')[1].send_keys(companies[index].companyName)
-
-            time.sleep(ACTION_WAIT_SLEEP_LONG)
-            ret = driver.find_elements_by_class_name('selected-area-list')
+            findTxt = driver.find_elements_by_class_name('el-input__inner')[0]
+            findTxt.click()
+            time.sleep(ACTION_WAIT_SLEEP_SHORT)
+            findTxt.send_keys(name)
+            # findTxt.send_keys("北京天泽汇丰建筑工程有限公司濮阳分公司")
+            # time.sleep(ACTION_WAIT_SLEEP_SHORT)
+            ret = driver.find_elements_by_class_name('el-select-dropdown__item')
             if len(ret) == 0:
                 log.e(jindu + '  ' + name + '  ' + ' 公司名模糊查询无结果')
                 continue
             match = False
             for i in range(len(ret)):
-                if ret[i].text == companies[index].companyName:
+                # if ret[i].get_attribute("style") =='display: none;':
+                #     continue
+                if ret[i].text == name:
                     ret[i].click()
                     match = True
                     break
-            if not match:
-                log.e(jindu + '  ' + name + '  ' + ' 公司名模糊查询结果无匹配')
-                continue
-            time.sleep(ACTION_WAIT_SLEEP_LONG)
 
-            years = driver.find_elements_by_class_name('year')
-            updateMigCompanyYear(name, site, years[len(years) - 1].text[0:4])
-            # del_file(path)
+            if not match:
+                unFind = unFind + 1
+                log.e(jindu + '  ' + name + '  ' + ' 公司名模糊查询结果无匹配  ' + str(unFind))
+                continue
+            time.sleep(ACTION_WAIT_SLEEP_SHORT)
+            toPage(driver, "https://ykj.eyun.cn/eyun3/html/#/accountNumber")
+            层级 = driver.find_element_by_class_name("cjps")
+            log.i('层级  ' + 层级.text)
+
+            下载Excel = driver.find_elements_by_class_name('el-button--default')
+
+            下载Excel[1].click()
+
+            maxTimes = int(LOAD_PAGE_TIMEOUT / WHILE_WAIT_SLEEP)
+            times = 0
+            while (times < maxTimes):
+                list = os.listdir(config.FILE_DOWNLOAD)
+                if len(list) > 0:
+                    log.i(jindu + '  ' + name + ' 下载Excel完成 复制')
+                    os.rename(config.FILE_DOWNLOAD + "\\" + list[0],
+                              path + "科目表.xls")
+                    log.i(jindu + '  ' + name + ' 复制完成')
+                    break
+                times = times + 1
+                if times == maxTimes:
+                    log.e(name + '文件下载等待 超时')
+                    break
+                else:
+                    log.d(jindu + '  ' + name + '文件下载等待  ' + str(times) + '/' + str(
+                        maxTimes))
+                time.sleep(WHILE_WAIT_SLEEP_LONG)
+
+        log.i(jindu + '  ' + name + '  ' + ' 完成')
+        return 0
+    except BaseException as e:
+        r = requests.get(driver.current_url, allow_redirects=False)
+        # 归档_切换账簿(driver)
+        log.exception('归档异常', r.status_code)
+        科目表_切换账簿(driver)
+
+
+
+
+def 归档_切换账簿(driver):
+    try:
+        site='浪潮'
+        # 菜单手动
+        retCode, companies, msg =  getMigCompany(site)
+        if retCode != 0:
+            log.e(msg)
+
+            return
+        unFind = 0
+        for index in range(len(companies)):
+            jindu = str(index) + '/' + str(len(companies))
+            name = companies[index].companyName.strip()
+            path = config.FILE_DOWNLOAD_COMPANY_LANGCHAOYUN + name + '\\'
+            #
+            # list = os.listdir(path)
+            # for index in range(len(companies)):
+            #     log.e(list[index])
+            # if path.endswith('*\\'):
+            #     path = path.replace('*\\', '\\')
+            if not os.path.isdir(path):
+                os.mkdir(path)
+            if int(companies[index].startYear)>2020 :
+                log.i(jindu + '  ' + name + ' 建账年 ' + str(companies[index].startYear) + ' 跳过')
+                continue
+
+
+            allFileExist = False
+            for y in range(int(companies[index].startYear), int(companies[index].currentYear) + 1):
+                if y > 2020:
+                    log.i(jindu + '  ' + name + '  ' + str(y) + ' 跳过')
+                    allFileExist = True
+                    continue
+
+                fileName = path + '归档管理' + str(y) + '.zip'
+                if os.path.exists(fileName):
+                    log.i(jindu + '  ' + name + '  ' + str(y) + ' 归档文件已存在')
+                    allFileExist = True
+                else:
+                    allFileExist = False
+                    break
+            if allFileExist:
+                continue
+
+            # 设置 = wait.until(EC.presence_of_element_located((By.ID, 'moreBtn')))
+            try:
+                findTxt = driver.find_elements_by_class_name('el-input__inner')
+                findTxt[0].click()
+            except Exception as e:
+                r = requests.get(driver.current_url, allow_redirects=False)
+                # 归档_切换账簿(driver)
+                log.exception('查询企业异常', r.status_code)
+                # driver.refresh()
+                # time.sleep(ACTION_WAIT_SLEEP_SHORT)
+
+                if('https://vip.eyun' in driver.switch_to.active_element.text):
+                    toPage(driver, "https://vip.eyun.cn/eyun3/html/#/")
+                    toPage(driver, "https://vip.eyun.cn/eyun3/html/#/gdgl")
+                else:
+                    toPage(driver, "https://ykj.eyun.cn/eyun3/html/#/")
+                    toPage(driver, "https://ykj.eyun.cn/eyun3/html/#/gdgl")
+                findTxt[0] = driver.find_elements_by_class_name('el-input__inner')[0]
+                findTxt[0].click()
+            time.sleep(ACTION_WAIT_SLEEP_SHORT)
+            findTxt[0].send_keys(name)
+            # findTxt.send_keys("北京天泽汇丰建筑工程有限公司濮阳分公司")
+            # time.sleep(ACTION_WAIT_SLEEP_SHORT)
+            ret = driver.find_elements_by_class_name('el-select-dropdown__item')
+            if len(ret) == 0:
+                updateMigCompanyGdStatus(name, site,-2,jindu + '  ' + name + '  ' + ' 公司名模糊查询无结果')
+                log.e(jindu + '  ' + name + '  ' + ' 公司名模糊查询无结果')
+                continue
+            match = False
+            for i in range(len(ret)):
+                # if ret[i].get_attribute("style") =='display: none;':
+                #     continue
+                if ret[i].text == name:
+                    ret[i].click()
+                    match = True
+                    break
+
+            if not match:
+                unFind = unFind + 1
+                updateMigCompanyGdStatus(name, site,-2,jindu + '  ' + name + '  ' + ' 公司名模糊查询无结果')
+                log.e(jindu + '  ' + name + '  ' + ' 公司名模糊查询结果无匹配  ' + str(unFind))
+                continue
+            time.sleep(ACTION_WAIT_SLEEP_SHORT)
+            if '/gdgl' not in driver.current_url :
+
+                toPage(driver, driver.current_url+"gdgl")
+            years = driver.find_elements_by_class_name("el-tree-node__label")
+
             for i in range(len(years)):
-                fileName = path + name.replace('*', '') + years[i].text[0:4] + '会计归档.zip'
-                if years[i].text == '2021年':
+
+                if '月' in years[i].text:
+                    continue
+                if '2021年' in years[i].text:
                     log.i(jindu + '  ' + name + '  ' + years[i].text + ' 跳过--')
                     continue
-                # if years[i].text == '2020年':
-                #     log.i(jindu + '  ' + name + '  ' + years[i].text + ' 临时跳过——')
-                #     continue
+                fileName = path + '归档管理' + years[i].text.replace('年','') + '.zip'
                 if os.path.exists(fileName):
-                    log.i(jindu + '  ' + name + '  ' + years[i].text + '归档文件已存在')
+                    log.i(jindu + '  ' + name + '  ' + str(y) + ' 归档文件已存在')
                     continue
                 years[i].click()
-                # 归档
-                归档 = driver.find_element_by_class_name('greenIconBtn')
-                归档.click()
+                归档按钮=driver.find_elements_by_class_name("el-button--primary")
+                for j in range(len(归档按钮)):
+                    if '归档' == 归档按钮[j].text:
+                        归档按钮[j].click()
+                        break
                 log.i(jindu + '  ' + name + '  ' + years[i].text + '归档 ')
                 maxTimes = int(DOWNLOAD_TIMEOUT / WHILE_WAIT_SLEEP_LONG)
                 times = 0
+                timeOut=False
                 while (times < maxTimes):
-                    if 归档.text == '归档':
+
+                    文件=driver.find_elements_by_class_name("el-table__row")
+                    if len(文件)==4 and driver.find_elements_by_class_name('el-button--default')[2].text=='EXCEL下载':
                         log.i(jindu + '  ' + name + '  ' + years[i].text + '归档完成')
                         break
                     times = times + 1
                     if times == maxTimes:
                         log.e(name + years[i].text + '归档等待 超时')
+                        # updateMigCompanyGdStatus(name, site,-2,name + years[i].text + '归档等待 超时')
+                        timeOut=True
                         break
                     else:
                         log.d(jindu + '  ' + name + '  ' + years[i].text + '归档等待  ' + str(times) + '/' + str(maxTimes))
                     time.sleep(WHILE_WAIT_SLEEP_LONG)
-
+                    years[i].click()
+                if timeOut:
+                    break
                 del_file(config.FILE_DOWNLOAD)
                 time.sleep(ACTION_WAIT_SLEEP_SHORT)
-                checkbox = driver.find_element_by_xpath("//table[@class = 'dgrid-row-table']/thead/tr/th/input")
-                checkbox.click()
-                下载Excel = driver.find_element_by_class_name('downloadExcelBtn')
+                下载Excel = driver.find_elements_by_class_name('el-button--default')
 
-                下载Excel.click()
-                log.i(jindu + '  ' + name + '  ' + years[i].text + ' 下载Excel')
+                下载Excel[2].click()
+
+                maxTimes = int(LOAD_PAGE_TIMEOUT / WHILE_WAIT_SLEEP)
                 times = 0
                 while (times < maxTimes):
                     list = os.listdir(config.FILE_DOWNLOAD)
-                    if len(list) > 0 and list[0].startswith(name.replace('*', '')) and list[0].endswith('.zip'):
-                        log.i(jindu + '  ' + name + '  ' + years[i].text + ' 下载Excel完成 复制')
+                    if len(list) > 0 and list[0].endswith('.zip'):
+                        log.i(jindu + '  ' + name + ' 下载Excel完成 复制')
                         os.rename(config.FILE_DOWNLOAD + "\\" + list[0],
-                                  path + list[0].replace('_', ''))
-                        driver.find_elements_by_class_name('els_span newtipNode')
-
-                        log.i(jindu + '  ' + name + '  ' + years[i].text + ' 复制完成')
+                                  path + list[0])
+                        log.i(jindu + '  ' + name + ' 复制完成')
                         break
                     times = times + 1
                     if times == maxTimes:
-                        log.e(name + years[i].text + '归档文件下载等待 超时')
+                        log.e(name + '文件下载等待 超时')
                         break
                     else:
-                        log.d(jindu + '  ' + name + '  ' + years[i].text + '归档文件下载等待  ' + str(times) + '/' + str(
+                        log.d(jindu + '  ' + name + '文件下载等待  ' + str(times) + '/' + str(
                             maxTimes))
                     time.sleep(WHILE_WAIT_SLEEP_LONG)
 
-        log.i(jindu + '  ' + name + '  ' + '   归档完成')
+            log.i(jindu + '  ' + name + '  ' + ' 完成')
         return 0
     except BaseException as e:
         r = requests.get(driver.current_url, allow_redirects=False)
@@ -746,83 +802,12 @@ def 归档_切换账簿(driver):
         log.exception('归档异常', r.status_code)
         归档_切换账簿(driver)
 
-
-def 切换账簿_归档(driver):
-    serNo = driver.find_elements_by_class_name('ser-no')
-    names = driver.find_elements_by_class_name('newGap')
-    进账簿按钮集合 = driver.find_elements_by_class_name('action-left')
-
-    if len(names) != len(进账簿按钮集合):
-        log.exception('len(names)!=len(进账簿按钮集合)', str(len(names)), str(len(进账簿按钮集合)))
-        return 1
-
-    try:
-
-        log.i('进账簿', serNo[0].text, names[0].text)
-
-        进账簿按钮集合[0].click()
-        handles = driver.window_handles
-        driver.switch_to.window(handles[1])
-        归档_切换账簿(driver)
-
-        driver.close()
-        driver.switch_to.window(handles[0])
-        # return 0
-    except BaseException as e:
-        r = requests.get(driver.current_url, allow_redirects=False)
-
-        log.exception('遍历账簿异常', r.status_code)
-
-
-def 遍历账簿_基本信息(driver):
-    serNos = driver.find_elements_by_class_name('ser-no')
-    names = driver.find_elements_by_class_name('newGap')
-    进账簿按钮集合 = driver.find_elements_by_class_name('action-left')
-
-    if len(names) != len(进账簿按钮集合):
-        log.exception('len(names)!=len(进账簿按钮集合)', str(len(names)), str(len(进账簿按钮集合)))
-        return 1
-    retCode, maxSerNo, msg = getMigCompanyMaxSerNo(site)
-    if retCode != 0:
-        log.e(msg)
-
-    for index in range(len(进账簿按钮集合)):
-        try:
-
-            serNo = serNos[index].text
-            if maxSerNo is not None and maxSerNo >= int(serNo):
-                continue
-            names[index].click()
-            name = driver.find_element_by_id('base-info-ref_custName').get_attribute('value')
-            taxNo = driver.find_element_by_id('base-info-ref_taxNo').get_attribute('value')
-            startDate = driver.find_element_by_id('caiwu-info-ref_openingPeriod').get_attribute('value')
-
-            log.i(names[index].text, name, taxNo, startDate)
-            insertMigCompany(serNo, name, taxNo, startDate[0:4], site)
-            driver.find_element_by_class_name('closeCustModal').click()
-
-        except BaseException as e:
-            r = requests.get(driver.current_url, allow_redirects=False)
-            log.exception('遍历账簿异常', r.status_code)
-    翻页按钮 = driver.find_elements_by_class_name('ant-pagination-item-link')
-    下一页按钮 = 翻页按钮[len(翻页按钮) - 1]
-    print(下一页按钮.text)
-
-    if 下一页按钮.is_enabled():
-
-        下一页按钮.click()
-        time.sleep(ACTION_WAIT_SLEEP_LONG)
-        return 遍历账簿_基本信息(driver)
-    else:
-        return 0
-
-
 if __name__ == "__main__":
     print('main')
     if not os.path.isdir(config.FILE_DOWNLOAD):
         os.mkdir(config.FILE_DOWNLOAD)
-    if not os.path.isdir(config.FILE_DOWNLOAD_COMPANY):
-        os.mkdir(config.FILE_DOWNLOAD_COMPANY)
+    if not os.path.isdir(config.FILE_DOWNLOAD_COMPANY_YIDAIZHANG):
+        os.mkdir(config.FILE_DOWNLOAD_COMPANY_YIDAIZHANG)
     # else:
     #     del_file(config.FILE_DOWNLOAD_COMPANY, True)
     #     os.mkdir(config.FILE_DOWNLOAD_COMPANY)
@@ -837,34 +822,26 @@ if __name__ == "__main__":
     log.i('不显示界面')
     # option.add_argument('--headless')
     # option.add_argument('--disable-gpu')
-
-    driver = webdriver.Chrome(options=option)
+    # 指定驱动
+    driver_path = "C:\Program Files\Google\Chrome\Application\chromedriver.exe"
+    driver = webdriver.Chrome(driver_path, options=option)
+    # driver = webdriver.Chrome(options=option)
     driver.set_window_size(window_size_w, window_size_h)
     driver.implicitly_wait(5)
     # 合肥账号是13965692190，密码是568565
     # 明光公司的易代账主管账号18815502801密码lym123456
     # 合肥/池州 账号 13965692190 密码 568565
-    # ret = login(driver, '13965692190', '568565') #合肥/池州
-    # site = '合肥池州'
 
-    ret = login(driver, '793763847@qq.com', '970705') #合肥/池州
-    site = '江苏众网'
-
-    # ret = login(driver, '793763847@qq.com', '970705')
+    ret = login(driver, '13213930109', '123abc')
     # ret = login(driver, 'maolianlian@56hui.com', '111111')
+    loginName = '合肥池州'
     if (ret != 0):
         time.sleep(60)
         print(' 登陆失败')
     if (ret == 0):
         driver.refresh()
-        # time.sleep(ACTION_WAIT_SLEEP_LONG)
-        # ret = 遍历账簿_基本信息(driver)
-
-
-        # 手动进账簿
         time.sleep(ACTION_WAIT_SLEEP_LONG)
-        handles = driver.window_handles
-        driver.switch_to.window(handles[1])
+
         ret = 归档_切换账簿(driver)
         if (ret != 0):
             log.e('遍历账簿失败', ret)

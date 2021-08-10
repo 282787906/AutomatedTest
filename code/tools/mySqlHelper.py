@@ -567,7 +567,7 @@ def insertBalanceBaseCode(kemuyueb, company):
         conn.close()
 
 
-def insertMigCompany(serNo,company, taxNo, startYear, site):
+def insertMigCompany(serNo, company, taxNo, startYear, site):
     try:
         conn = pymysql.connect(host='localhost',
                                port=3306,
@@ -587,7 +587,7 @@ def insertMigCompany(serNo,company, taxNo, startYear, site):
         # 使用 execute()  方法执行 SQL 查询
 
         sql = "INSERT INTO mig_company_gd (serNo,companyName,taxNo, startYear,site,status) VALUES (%s,%s,%s, %s,%s, -3)"
-        val = (serNo,company, taxNo, startYear, site)
+        val = (serNo, company, taxNo, startYear, site)
         cursor.execute(sql, val)
         conn.commit()
 
@@ -618,18 +618,22 @@ def getMigCompany(site):
         # 使用 cursor() 方法创建一个游标对象 cursor
         cursor = conn.cursor(pymysql.cursors.DictCursor)
         # 使用 execute()  方法执行 SQL 查询
-        sql = "SELECT serNo,companyName,taxNo ,startYear,site,currentYear FROM mig_company_gd f WHERE  status =-3 and site='%s'" % (site)
+        if site is None or site=='':
+            sql = "SELECT serNo,companyName,taxNo ,startYear,site,currentYear FROM mig_company_gd f WHERE  status =-3"
+        else:
+            sql = "SELECT serNo,companyName,taxNo ,startYear,site,currentYear FROM mig_company_gd f WHERE  status =-3 and site='%s'" % (
+                site)
         cursor.execute(sql)
         data = []
         for row in cursor.fetchall():
-            serNo= row["serNo"]
+            serNo = row["serNo"]
             taxNo = row["taxNo"]
             companyName = row["companyName"]
             startYear = row["startYear"]
             currentYear = row["currentYear"]
             site = row["site"]
 
-            model = MigCompany(serNo,taxNo, companyName, startYear,currentYear, site)
+            model = MigCompany(serNo, taxNo, companyName, startYear, currentYear, site)
             data.append(model)
         return 0, data, None
 
@@ -639,6 +643,45 @@ def getMigCompany(site):
     finally:
         # 关闭数据库连接
         conn.close()
+
+
+def getLangChaoCompany():
+    try:
+        conn = pymysql.connect(host='localhost',
+                               port=3306,
+                               user='root',
+                               passwd='root',
+                               db='hycaitestdata',
+                               charset='utf8')
+    except:
+
+        print('数据库连接异常:', traceback._context_message)
+        traceback.print_exc()
+        return -1, None, '数据库连接异常 '
+
+    try:
+        # 使用 cursor() 方法创建一个游标对象 cursor
+        cursor = conn.cursor(pymysql.cursors.DictCursor)
+        # 使用 execute()  方法执行 SQL 查询
+        sql = "SELECT name, startYear,currYear FROM langchao2  "
+        cursor.execute(sql)
+        data = []
+        for row in cursor.fetchall():
+            companyName = row["name"]
+            startYear = row["startYear"]
+            currentYear = row["currYear"]
+
+            model = MigCompany(None, None, companyName, startYear, currentYear, None)
+            data.append(model)
+        return 0, data, None
+
+    except BaseException as e:
+        log.exception('getMigCompany 异常:')
+        return -2, None, '数据库查询异常'
+    finally:
+        # 关闭数据库连接
+        conn.close()
+
 
 def getMigCompanyMaxSerNo(site):
     try:
@@ -659,7 +702,7 @@ def getMigCompanyMaxSerNo(site):
         cursor = conn.cursor(pymysql.cursors.DictCursor)
         # 使用 execute()  方法执行 SQL 查询
         sql = "SELECT max(serNo) maxSerNo FROM mig_company_gd f WHERE  status =-3 and site='%s'" % (site)
-        ret=cursor.execute(sql)
+        ret = cursor.execute(sql)
         for row in cursor.fetchall():
             maxSerNo = row["maxSerNo"]
         return 0, maxSerNo, None
@@ -670,7 +713,9 @@ def getMigCompanyMaxSerNo(site):
     finally:
         # 关闭数据库连接
         conn.close()
-def updateMigCompanyYear(companyName,site,currentYear):
+
+
+def updateMigCompanyYear(companyName, site, currentYear):
     try:
         conn = pymysql.connect(host='localhost',
                                port=3306,
@@ -690,15 +735,49 @@ def updateMigCompanyYear(companyName,site,currentYear):
         # 使用 execute()  方法执行 SQL 查询
         sql = "update   mig_company_gd f set currentYear=%s WHERE  status =-3 and companyName =%s and site=%s"
 
-        cursor.execute(sql,[int(currentYear),companyName,site])
+        cursor.execute(sql, [int(currentYear), companyName, site])
         conn.commit()
-        return 0,   None
+        return 0, None
 
     except:
         traceback.print_exc()
 
         print('数据库查询异常:', traceback._context_message)
-        return -2,   '数据库查询异常'
+        return -2, '数据库查询异常'
+    finally:
+        # 关闭数据库连接
+        conn.close()
+
+
+def updateMigCompanyGdStatus(companyName, site, status, attr4):
+    try:
+        conn = pymysql.connect(host='localhost',
+                               port=3306,
+                               user='root',
+                               passwd='root',
+                               db='hycaitestdata',
+                               charset='utf8')
+    except:
+
+        print('数据库连接异常:', traceback._context_message)
+        traceback.print_exc()
+        return -1, None, '数据库连接异常 '
+
+    try:
+        # 使用 cursor() 方法创建一个游标对象 cursor
+        cursor = conn.cursor()
+        # 使用 execute()  方法执行 SQL 查询
+        sql = "update   mig_company_gd f set status=%s,attr4=%s WHERE companyName =%s and site=%s"
+
+        cursor.execute(sql, [str(status), attr4, companyName, site])
+        conn.commit()
+        return 0, None
+
+    except:
+        traceback.print_exc()
+
+        print('数据库查询异常:', traceback._context_message)
+        return -2, '数据库查询异常'
     finally:
         # 关闭数据库连接
         conn.close()
@@ -717,4 +796,4 @@ if __name__ == "__main__":
     # index = 0
     # timer = threading.Timer(1, connTestSub)
     # timer.start()
-    getConnStatus()
+    getLangChaoCompany()

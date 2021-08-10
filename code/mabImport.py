@@ -64,13 +64,13 @@ def upladYiDaiZgangFiles(path, company):
 
 
 def importAll():
-    list = os.listdir(config.FILE_DOWNLOAD_COMPANY)
+    list = os.listdir(config.FILE_DOWNLOAD_COMPANY_YIDAIZHANG)
     times = 0
     for company in list:
         times = times + 1
 
         try:
-            retCode, msg = upladYiDaiZgangFiles(config.FILE_DOWNLOAD_COMPANY + company + "\\", company)
+            retCode, msg = upladYiDaiZgangFiles(config.FILE_DOWNLOAD_COMPANY_YIDAIZHANG + company + "\\", company)
             if retCode != 0:
                 log.e(str(times), '  导入文件失败：' + company + '  ' + msg)
             else:
@@ -85,7 +85,7 @@ def importAll():
 
 def importOne(company):
     try:
-        retCode, msg = upladYiDaiZgangFiles(config.FILE_DOWNLOAD_COMPANY + company + "\\", company)
+        retCode, msg = upladYiDaiZgangFiles(config.FILE_DOWNLOAD_COMPANY_YIDAIZHANG + company + "\\", company)
         if retCode != 0:
             log.e('导入文件失败：' + company + '  ' + msg)
         else:
@@ -100,7 +100,7 @@ if __name__ == "__main__":
     # importOne("张家港市鸿泉物流有限公司")
 
 
-    path = 'D:\\seleniumTemp\\doc\\'
+    path = 'D:\\seleniumTemp\\浪潮云\\'
 
     # if os.path.isfile(path+'湖北嘉明物流有限公司/科目表.xls'):
     #     log.e('科目表读取失败：')
@@ -110,7 +110,7 @@ if __name__ == "__main__":
     for file in list:
         company = file
         if os.path.isfile(path + file+'/科目表.xls'):
-            retCode, dicts = excelTools.read_BalanceBaseCode(path + file+'/科目表.xls')
+            retCode, dicts = excelTools.read_BalanceBaseCodeLangChao(path + file+'/科目表.xls')
             if retCode != 0:
                 log.e('科目表读取失败：')
             saveBalanceBaseCode(dicts, company)

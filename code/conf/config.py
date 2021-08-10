@@ -95,7 +95,10 @@ def set_runWith(value):
     global dateFormat
     if runWith == RUN_WITH_CMD:
         dateFormat = "%Y-%m-%d  %H:%M:%S"
+        print('运行方式 Cmd')
+    elif runWith == RUN_WITH_PYCHARM:
 
+        print('运行方式 Pycharm')
 
 
 domain = str
@@ -114,7 +117,8 @@ HOST_SOURCE_ON_YUN_NAN= 'yunNan'
 HOST_SOURCE_ON_NAN_CHANG= 'nanChang'
 HOST_SOURCE_ON_JIN_KAI_QU= 'jinKaiQu'
 FILE_DOWNLOAD='d:\\seleniumTemp\\download'
-FILE_DOWNLOAD_COMPANY='D:\\seleniumTemp\\归档_众网\\'
+FILE_DOWNLOAD_COMPANY_YIDAIZHANG= 'D:\\seleniumTemp\\易代账归档\\'
+FILE_DOWNLOAD_COMPANY_LANGCHAOYUN= 'D:\\seleniumTemp\\浪潮云归档\\'
 
 
 hostSource = None
@@ -229,8 +233,8 @@ WHILE_WAIT_SLEEP = 0.1
 WHILE_WAIT_SLEEP_LONG= 1
 ACTION_WAIT_SLEEP_SHORT = 0.3
 ACTION_WAIT_SLEEP_LONG = 1
-LOAD_PAGE_TIMEOUT = 10
-DOWNLOAD_TIMEOUT = 180
+LOAD_PAGE_TIMEOUT = 2
+DOWNLOAD_TIMEOUT = 90
 FAIL_WAIT_SLEEP=20
 
 window_size_w = 1400

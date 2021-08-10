@@ -22,6 +22,6 @@ if __name__ == "__main__":
             sys.argv[2] == 'online' or sys.argv[2] == 'pre'):
         config.set_runWith(sys.argv[1])
         config.set_host(sys.argv[2])
-        dbMonitor.run()
+
     else:
         print(paramInfo())
